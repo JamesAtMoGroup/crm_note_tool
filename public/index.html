@@ -512,7 +512,7 @@
         section('📞 Demo 過程紀錄') +
         field('Demo 中聊到的內容', 'f_demoContent', 'textarea', { placeholder: '若有插班，請註明插班' });
     } else {
-      const hasPortfolio = brandKey !== 'nschool';
+      const hasPortfolio = true;
       el.innerHTML =
         section('📌 學員基本資料') +
         field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
@@ -603,7 +603,7 @@
       demoContent:   get('f_demoContent'),
       salesScript:   get('f_salesScript'),
     };
-    if (currentBrand !== 'nschool') data.portfolio = get('f_portfolio');
+    data.portfolio = get('f_portfolio');
     return data;
   }
 
@@ -703,7 +703,7 @@
         `<div class="modal-divider"></div>` +
         `<div class="modal-section-label">📞 Demo 過程紀錄</div>` +
         row('Demo 中聊到的內容', formData.demoContent || '（未填）');
-      if (currentBrand !== 'nschool') html += row('作品集', formData.portfolio || '（未填）');
+      html += row('作品集', formData.portfolio || '（未填）');
       html += row('話術內容', formData.salesScript);
     }
 
