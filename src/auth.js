@@ -7,11 +7,18 @@ const tokenCache = new Map();
 
 function getBrands() {
   try {
-    const raw = process.env.BRANDS;
-    // 移除換行與多餘空白後再 parse
-    return JSON.parse(raw.replace(/\s+/g, ' '));
+    let raw = process.env.BRANDS;
+    // 移除前後空白與換行
+    raw = raw.trim();
+    // 如果 Zeabur 包了外層引號，先去掉
+    if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) {
+      raw = raw.slice(1, -1);
+    }
+    // 移除換行
+    raw = raw.replace(/[\r\n]/g, '');
+    return JSON.parse(raw);
   } catch (e) {
-    throw new Error('BRANDS 環境變數格式錯誤，請確認是合法 JSON');
+    throw new Error(`BRANDS 環境變數格式錯誤：${e.message}`);
   }
 }
 
