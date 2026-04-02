@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
   if (!brand)
     return res.status(400).json({ success: false, message: `找不到品牌：${brandKey}` });
 
-  const description = formatNote(formData, staffName);
+  const description = formatNote(formData, staffName, brandKey);
   const createdAt = new Date().toISOString();
 
   try {
@@ -55,23 +55,60 @@ router.post('/', async (req, res) => {
   }
 });
 
-function formatNote(formData, staffName) {
+function formatNote(formData, staffName, brandKey) {
   const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+  const footer = `\n\n---\n記錄人員：${staffName || '-'}\n記錄時間：${now}`;
+
+  if (brandKey === 'xlab') {
+    return `【客服溝通紀錄】
+
+📌 學員基本資料
+學員姓名：${formData.memberName || '-'}
+學員背景科系&職業：${formData.background || '-'}
+購買方案：${formData.plan || '-'}
+訓練營梯次：${formData.campSession || '-'}
+實體/線上：${formData.mode || '-'}
+教材名稱：${formData.material || '-'}
+
+📞 Demo 過程紀錄
+Demo 中聊到的內容：${formData.demoContent || '-'}` + footer;
+  }
+
+  if (brandKey === 'nschool') {
+    return `【客服溝通紀錄】
+
+📌 學員基本資料
+學員姓名：${formData.memberName || '-'}
+學員背景科系&職業：${formData.background || '-'}
+購買領域：${formData.purchaseDomain || '-'}
+
+🎯 學習目標與動機
+加入學院的期待（短、中、長期目標）：${formData.expectation || '-'}
+學員特質/個性：${formData.personality || '-'}
+學員故事背景：${formData.story || '-'}
+
+📞 Demo 過程紀錄
+Demo 中聊到的內容：${formData.demoContent || '-'}
+話術內容：${formData.salesScript || '-'}` + footer;
+  }
+
+  // xuemi / sixdigital / kkschool
   return `【客服溝通紀錄】
 
+📌 學員基本資料
 學員姓名：${formData.memberName || '-'}
-背景科系／職業：${formData.background || '-'}
-購買方案：${formData.plan || '-'}
-訓練營：${formData.camp || '-'}
-上課形式：${formData.mode || '-'}
-教材：${formData.material || '-'}
+學員背景科系&職業：${formData.background || '-'}
+購買領域：${formData.purchaseDomain || '-'}
 
-溝通紀錄：
-${formData.note || '-'}
+🎯 學習目標與動機
+加入學院的期待（短、中、長期目標）：${formData.expectation || '-'}
+學員特質/個性：${formData.personality || '-'}
+學員故事背景：${formData.story || '-'}
 
----
-記錄人員：${staffName || '-'}
-記錄時間：${now}`;
+📞 Demo 過程紀錄
+Demo 中聊到的內容：${formData.demoContent || '-'}
+是否有作品集可提供：${formData.portfolio || '-'}
+話術內容：${formData.salesScript || '-'}` + footer;
 }
 
 module.exports = router;

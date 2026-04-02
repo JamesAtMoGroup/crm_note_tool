@@ -42,7 +42,11 @@
     /* Header */
     .header {
       margin-bottom: 36px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
     }
+    .header-left {}
     .header-label {
       font-family: 'DM Mono', monospace;
       font-size: 11px;
@@ -56,6 +60,32 @@
       font-weight: 600;
       letter-spacing: -0.02em;
     }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      padding: 4px 10px;
+      background: var(--accent-light);
+      border: 1px solid #c3d9c8;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .logout-btn {
+      margin-top: 8px;
+      padding: 6px 14px;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .logout-btn:hover { border-color: var(--text-muted); color: var(--text); }
 
     /* Card */
     .card {
@@ -75,6 +105,15 @@
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
     }
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 20px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-label:first-child { margin-top: 0; }
 
     /* Form elements */
     .field {
@@ -89,10 +128,7 @@
       color: var(--text);
       margin-bottom: 6px;
     }
-    label .req {
-      color: var(--error);
-      margin-left: 2px;
-    }
+    label .req { color: var(--error); margin-left: 2px; }
 
     input, select, textarea {
       width: 100%;
@@ -111,9 +147,8 @@
       border-color: var(--border-focus);
       background: #fff;
     }
-    input::placeholder, textarea::placeholder {
-      color: var(--text-muted);
-    }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+    input[readonly] { color: var(--text-muted); cursor: default; }
     select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
@@ -123,15 +158,12 @@
     }
     textarea {
       resize: vertical;
-      min-height: 100px;
+      min-height: 90px;
       line-height: 1.6;
     }
 
     /* Search row */
-    .search-row {
-      display: flex;
-      gap: 8px;
-    }
+    .search-row { display: flex; gap: 8px; }
     .search-row input { flex: 1; }
 
     .btn {
@@ -147,11 +179,7 @@
     }
     .btn:active { transform: scale(0.98); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-    .btn-search {
-      background: var(--text);
-      color: #fff;
-    }
+    .btn-search { background: var(--text); color: #fff; }
     .btn-submit {
       width: 100%;
       background: var(--accent);
@@ -159,6 +187,13 @@
       padding: 14px;
       font-size: 15px;
       margin-top: 4px;
+    }
+    .btn-login {
+      width: 100%;
+      background: var(--text);
+      color: #fff;
+      padding: 14px;
+      font-size: 15px;
     }
 
     /* Member result */
@@ -173,17 +208,12 @@
     }
     .member-result.show { display: flex; align-items: center; gap: 12px; }
     .member-avatar {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       border-radius: 50%;
       background: var(--accent);
       color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 14px; flex-shrink: 0;
     }
     .member-name { font-weight: 600; }
     .member-email { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
@@ -200,46 +230,75 @@
     .alert-error { background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error); }
     .alert-success { background: var(--accent-light); border: 1px solid #c3d9c8; color: var(--success); }
 
-    /* Two-col grid */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
+    /* Login view */
+    #loginView {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      width: 100%;
+      position: fixed;
+      top: 0; left: 0;
+      background: var(--bg);
+      z-index: 10;
     }
-    @media (max-width: 480px) {
-      .grid-2 { grid-template-columns: 1fr; }
+    #loginView.hidden { display: none; }
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 360px;
     }
+    .login-box .header-label { margin-bottom: 4px; }
+    .login-box h1 { font-size: 20px; font-weight: 600; margin-bottom: 28px; }
 
-    /* Form section hidden until member found */
     #formSection { display: none; }
     #formSection.show { display: block; }
 
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 20px 0;
-    }
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="header">
+<!-- 登入畫面 -->
+<div id="loginView">
+  <div class="login-box">
     <div class="header-label">Internal Tool</div>
     <h1>客服溝通紀錄</h1>
+    <div class="field">
+      <label>選擇帳號<span class="req">*</span></label>
+      <select id="loginSelect">
+        <option value="">請選擇</option>
+        <option value="xuemi">學米</option>
+        <option value="sixdigital">無限</option>
+        <option value="kkschool">職能</option>
+        <option value="nschool">財經</option>
+        <option value="xlab">xlab</option>
+      </select>
+    </div>
+    <div class="field" style="margin-top:8px;">
+      <button class="btn btn-login" onclick="login()">登入</button>
+    </div>
+    <div class="alert alert-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div class="container" id="appView" style="display:none;">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-label">Internal Tool</div>
+      <h1>客服溝通紀錄</h1>
+      <div class="brand-badge" id="brandBadge"></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">登出</button>
   </div>
 
   <!-- Step 1: 搜尋會員 -->
   <div class="card">
     <div class="card-title">01 · 搜尋學員</div>
-
-    <div class="field">
-      <label>品牌<span class="req">*</span></label>
-      <select id="brandSelect">
-        <option value="">載入中...</option>
-      </select>
-    </div>
-
     <div class="field">
       <label>學員信箱<span class="req">*</span></label>
       <div class="search-row">
@@ -247,7 +306,6 @@
         <button class="btn btn-search" id="searchBtn" onclick="searchMember()">搜尋</button>
       </div>
     </div>
-
     <div class="member-result" id="memberResult">
       <div class="member-avatar" id="memberAvatar"></div>
       <div>
@@ -255,69 +313,22 @@
         <div class="member-email" id="memberEmail"></div>
       </div>
     </div>
-
     <div class="alert alert-error" id="searchError"></div>
   </div>
 
   <!-- Step 2: 填寫紀錄 -->
   <div id="formSection">
     <div class="card">
-      <div class="card-title">02 · 學員資訊</div>
-
-      <div class="grid-2">
-        <div class="field">
-          <label>購買方案</label>
-          <input type="text" id="plan" placeholder="例：職能一年方案" />
-        </div>
-        <div class="field">
-          <label>訓練營</label>
-          <input type="text" id="camp" placeholder="例：前端工程" />
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="field">
-          <label>背景科系／職業</label>
-          <input type="text" id="background" placeholder="例：資管系 / 業務" />
-        </div>
-        <div class="field">
-          <label>教材</label>
-          <select id="material">
-            <option value="">請選擇</option>
-            <option>有</option>
-            <option>無</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>上課形式</label>
-        <select id="mode">
-          <option value="">請選擇</option>
-          <option>線上</option>
-          <option>實體</option>
-          <option>混合</option>
-        </select>
-      </div>
+      <div class="card-title">02 · 填寫紀錄</div>
+      <div id="dynamicForm"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">03 · 溝通紀錄</div>
-
-      <div class="field">
-        <label>溝通內容<span class="req">*</span></label>
-        <textarea id="note" placeholder="記錄本次溝通的重點、學員問題、後續追蹤事項..."></textarea>
-      </div>
-
-      <div class="divider"></div>
-
       <div class="field">
         <label>記錄人員<span class="req">*</span></label>
         <input type="text" id="staffName" placeholder="你的名字" />
       </div>
-
       <button class="btn btn-submit" id="submitBtn" onclick="submitNote()">送出並同步 CRM</button>
-
       <div class="alert alert-error" id="submitError"></div>
       <div class="alert alert-success" id="submitSuccess"></div>
     </div>
@@ -325,109 +336,241 @@
 </div>
 
 <script>
-  let foundMemberId = null;
+  const BRAND_NAMES = {
+    xuemi: '學米', sixdigital: '無限', kkschool: '職能', nschool: '財經', xlab: 'xlab'
+  };
 
-  // 載入品牌清單
-  async function loadBrands() {
-    try {
-      const res = await fetch('/api/brands');
-      const json = await res.json();
-      const select = document.getElementById('brandSelect');
-      select.innerHTML = '<option value="">選擇品牌</option>';
-      json.data.forEach(b => {
-        const opt = document.createElement('option');
-        opt.value = b.key;
-        opt.textContent = b.name;
-        select.appendChild(opt);
-      });
-    } catch (e) {
-      document.getElementById('brandSelect').innerHTML = '<option value="">載入失敗</option>';
+  const XLAB_MATERIALS = [
+    '【MKT】數位行銷','【DE】商用設計','【KOL】網紅多媒體',
+    '【PRD】產品設計','【WEB】網站工程','【AI】人工智慧、Python',
+    '【WA】AI高效工具(n8n、GAS)','【ALL】全領域'
+  ];
+
+  let currentBrand = null;
+  let foundMemberId = null;
+  let foundMemberName = null;
+
+  // ── Login ──────────────────────────────────────────
+  function checkLogin() {
+    const saved = sessionStorage.getItem('brandKey');
+    if (saved && BRAND_NAMES[saved]) {
+      enterApp(saved);
     }
   }
 
-  // 搜尋會員
+  function login() {
+    const val = document.getElementById('loginSelect').value;
+    const errEl = document.getElementById('loginError');
+    if (!val) {
+      errEl.textContent = '請選擇帳號';
+      errEl.classList.add('show');
+      return;
+    }
+    sessionStorage.setItem('brandKey', val);
+    enterApp(val);
+  }
+
+  function logout() {
+    sessionStorage.removeItem('brandKey');
+    currentBrand = null;
+    foundMemberId = null;
+    foundMemberName = null;
+    document.getElementById('appView').style.display = 'none';
+    document.getElementById('loginView').classList.remove('hidden');
+    document.getElementById('loginSelect').value = '';
+    document.getElementById('loginError').classList.remove('show');
+  }
+
+  function enterApp(brandKey) {
+    currentBrand = brandKey;
+    document.getElementById('loginView').classList.add('hidden');
+    document.getElementById('appView').style.display = 'block';
+    document.getElementById('brandBadge').textContent = BRAND_NAMES[brandKey] || brandKey;
+    renderForm(brandKey);
+    resetAll();
+  }
+
+  // ── Form rendering ─────────────────────────────────
+  function field(label, id, type, opts = {}) {
+    const req = opts.required ? '<span class="req">*</span>' : '';
+    const ph = opts.placeholder || '';
+    let input = '';
+    if (type === 'textarea') {
+      input = `<textarea id="${id}" placeholder="${ph}"></textarea>`;
+    } else if (type === 'select') {
+      const options = opts.options.map(o =>
+        typeof o === 'string'
+          ? `<option value="${o}">${o}</option>`
+          : `<option value="${o.v}">${o.l}</option>`
+      ).join('');
+      input = `<select id="${id}"><option value="">請選擇</option>${options}</select>`;
+    } else {
+      input = `<input type="text" id="${id}" placeholder="${ph}" ${opts.readonly ? 'readonly' : ''} />`;
+    }
+    return `<div class="field"><label>${label}${req}</label>${input}</div>`;
+  }
+
+  function section(title) {
+    return `<div class="section-label">${title}</div>`;
+  }
+
+  function renderForm(brandKey) {
+    const el = document.getElementById('dynamicForm');
+
+    if (brandKey === 'xlab') {
+      el.innerHTML =
+        section('📌 學員基本資料') +
+        field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
+        field('學員背景科系&職業', 'f_background', 'textarea', { required: true, placeholder: '例：資管系 / 業務' }) +
+        field('購買方案', 'f_plan', 'text', { required: true, placeholder: '例：全領域年約' }) +
+        field('訓練營梯次', 'f_campSession', 'text', { required: true, placeholder: '日期_主題，尚未開課填「尚未」' }) +
+        field('實體/線上', 'f_mode', 'select', { required: true, options: ['實體','線上','實體+線上'] }) +
+        field('教材名稱', 'f_material', 'select', { required: true, options: XLAB_MATERIALS }) +
+        section('📞 Demo 過程紀錄') +
+        field('Demo 中聊到的內容', 'f_demoContent', 'textarea', { placeholder: '若有插班，請註明插班' });
+    } else {
+      const hasPortfolio = brandKey !== 'nschool';
+      el.innerHTML =
+        section('📌 學員基本資料') +
+        field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
+        field('學員背景科系&職業', 'f_background', 'textarea', { required: true, placeholder: '例：資管系 / 業務' }) +
+        field('購買領域', 'f_purchaseDomain', 'text', { required: true, placeholder: '例：前端工程' }) +
+        section('🎯 學習目標與動機') +
+        field('加入學院的期待（短、中、長期目標）', 'f_expectation', 'textarea', { required: true }) +
+        field('學員特質/個性', 'f_personality', 'textarea', { required: true }) +
+        field('學員故事背景（可自由描述）', 'f_story', 'textarea', { required: true }) +
+        section('📞 Demo 過程紀錄') +
+        field('Demo 中聊到的內容', 'f_demoContent', 'textarea') +
+        (hasPortfolio ? field('是否有作品集可提供（有請附連結）', 'f_portfolio', 'text', { placeholder: '無則留空' }) : '') +
+        field('話術內容', 'f_salesScript', 'textarea', { required: true });
+    }
+  }
+
+  // ── Search ─────────────────────────────────────────
   async function searchMember() {
-    const brandKey = document.getElementById('brandSelect').value;
-    const email    = document.getElementById('emailInput').value.trim();
-    const errEl    = document.getElementById('searchError');
-    const resultEl = document.getElementById('memberResult');
-    const formEl   = document.getElementById('formSection');
+    const email  = document.getElementById('emailInput').value.trim();
+    const errEl  = document.getElementById('searchError');
+    const resEl  = document.getElementById('memberResult');
+    const formEl = document.getElementById('formSection');
 
     errEl.classList.remove('show');
-    resultEl.classList.remove('show');
+    resEl.classList.remove('show');
     formEl.classList.remove('show');
-    foundMemberId = null;
+    foundMemberId = null; foundMemberName = null;
 
-    if (!brandKey) return showError(errEl, '請先選擇品牌');
-    if (!email)    return showError(errEl, '請輸入學員信箱');
+    if (!email) return showError(errEl, '請輸入學員信箱');
 
     const btn = document.getElementById('searchBtn');
-    btn.disabled = true;
-    btn.textContent = '搜尋中...';
+    btn.disabled = true; btn.textContent = '搜尋中...';
 
     try {
       const res  = await fetch('/api/member/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, brandKey }),
+        body: JSON.stringify({ email, brandKey: currentBrand }),
       });
       const json = await res.json();
-
       if (!json.success) return showError(errEl, json.message);
 
       const m = json.data;
-      foundMemberId = m.id;
+      foundMemberId   = m.id;
+      foundMemberName = m.name;
 
       document.getElementById('memberAvatar').textContent = m.name?.[0] || '?';
       document.getElementById('memberName').textContent   = m.name;
       document.getElementById('memberEmail').textContent  = m.email;
-      resultEl.classList.add('show');
+
+      const nameField = document.getElementById('f_memberName');
+      if (nameField) nameField.value = m.name;
+
+      resEl.classList.add('show');
       formEl.classList.add('show');
     } catch (e) {
       showError(errEl, '連線失敗，請稍後再試');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '搜尋';
+      btn.disabled = false; btn.textContent = '搜尋';
     }
   }
 
-  // 送出紀錄
+  // ── Submit ─────────────────────────────────────────
+  function getFormData() {
+    const get = id => {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : undefined;
+    };
+
+    if (currentBrand === 'xlab') {
+      return {
+        memberName:  foundMemberName,
+        background:  get('f_background'),
+        plan:        get('f_plan'),
+        campSession: get('f_campSession'),
+        mode:        get('f_mode'),
+        material:    get('f_material'),
+        demoContent: get('f_demoContent'),
+      };
+    }
+
+    const data = {
+      memberName:    foundMemberName,
+      background:    get('f_background'),
+      purchaseDomain:get('f_purchaseDomain'),
+      expectation:   get('f_expectation'),
+      personality:   get('f_personality'),
+      story:         get('f_story'),
+      demoContent:   get('f_demoContent'),
+      salesScript:   get('f_salesScript'),
+    };
+    if (currentBrand !== 'nschool') data.portfolio = get('f_portfolio');
+    return data;
+  }
+
+  function getRequiredFields() {
+    if (currentBrand === 'xlab') {
+      return [
+        ['f_background','學員背景科系&職業'],
+        ['f_plan','購買方案'],
+        ['f_campSession','訓練營梯次'],
+        ['f_mode','實體/線上'],
+        ['f_material','教材名稱'],
+      ];
+    }
+    const fields = [
+      ['f_background','學員背景科系&職業'],
+      ['f_purchaseDomain','購買領域'],
+      ['f_expectation','加入學院的期待'],
+      ['f_personality','學員特質/個性'],
+      ['f_story','學員故事背景'],
+      ['f_salesScript','話術內容'],
+    ];
+    return fields;
+  }
+
   async function submitNote() {
     const errEl     = document.getElementById('submitError');
     const successEl = document.getElementById('submitSuccess');
-    errEl.classList.remove('show');
-    successEl.classList.remove('show');
+    errEl.classList.remove('show'); successEl.classList.remove('show');
 
-    const brandKey  = document.getElementById('brandSelect').value;
     const staffName = document.getElementById('staffName').value.trim();
-    const note      = document.getElementById('note').value.trim();
-
     if (!foundMemberId) return showError(errEl, '請先搜尋學員');
-    if (!note)          return showError(errEl, '請填寫溝通紀錄內容');
     if (!staffName)     return showError(errEl, '請填寫記錄人員');
 
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '同步中...';
+    for (const [id, label] of getRequiredFields()) {
+      const el = document.getElementById(id);
+      if (!el || !el.value.trim()) return showError(errEl, `請填寫「${label}」`);
+    }
 
-    const formData = {
-      memberName:  document.getElementById('memberName').textContent,
-      background:  document.getElementById('background').value.trim(),
-      plan:        document.getElementById('plan').value.trim(),
-      camp:        document.getElementById('camp').value.trim(),
-      mode:        document.getElementById('mode').value,
-      material:    document.getElementById('material').value,
-      note,
-    };
+    const formData = getFormData();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = '同步中...';
 
     try {
       const res  = await fetch('/api/note', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brandKey, memberId: foundMemberId, staffName, formData }),
+        body: JSON.stringify({ brandKey: currentBrand, memberId: foundMemberId, staffName, formData }),
       });
       const json = await res.json();
-
       if (!json.success) return showError(errEl, json.message);
 
       successEl.textContent = '✅ 已成功寫入 CRM！';
@@ -436,28 +579,39 @@
     } catch (e) {
       showError(errEl, '連線失敗，請稍後再試');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '送出並同步 CRM';
+      btn.disabled = false; btn.textContent = '送出並同步 CRM';
     }
   }
 
+  // ── Utils ──────────────────────────────────────────
   function showError(el, msg) {
     el.textContent = msg;
     el.classList.add('show');
   }
 
   function resetForm() {
-    ['plan','camp','background','note','staffName'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-    ['mode','material'].forEach(id => {
-      document.getElementById(id).selectedIndex = 0;
-    });
+    document.getElementById('emailInput').value = '';
+    document.getElementById('staffName').value = '';
+    document.getElementById('memberResult').classList.remove('show');
+    document.getElementById('formSection').classList.remove('show');
+    document.getElementById('searchError').classList.remove('show');
+    foundMemberId = null; foundMemberName = null;
+    renderForm(currentBrand);
   }
 
-  // Enter 鍵觸發搜尋
+  function resetAll() {
+    document.getElementById('emailInput').value = '';
+    document.getElementById('staffName').value = '';
+    document.getElementById('memberResult').classList.remove('show');
+    document.getElementById('formSection').classList.remove('show');
+    document.getElementById('searchError').classList.remove('show');
+    document.getElementById('submitError').classList.remove('show');
+    document.getElementById('submitSuccess').classList.remove('show');
+    foundMemberId = null; foundMemberName = null;
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    loadBrands();
+    checkLogin();
     document.getElementById('emailInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') searchMember();
     });
