@@ -90,40 +90,24 @@ ${v(formData.demoContent)}`;
 
 📞 Demo 過程紀錄
 Demo 中聊到的內容：${v(formData.demoContent)}
-是否有作品集可提供（是就附上附上連結）：${v(formData.portfolio)}
 *話術內容：${v(formData.salesScript)}`;
   }
 
   // xuemi / sixdigital / kkschool
   return `📌 學員基本資料
-
 *學員姓名：${v(formData.memberName)}
-
 *學員背景科系&職業：${v(formData.background)}
-
 *購買領域：${v(formData.purchaseDomain)}
 
 🎯 學習目標與動機
-
-*加入學院的期待（短、中、長期目標）：
-${v(formData.expectation)}
-
-*學員特質/個性：
-${v(formData.personality)}
-
-*學員故事背景（可自由描述）：
-${v(formData.story)}
+*加入學院的期待（短、中、長期目標）：${v(formData.expectation)}
+*學員特質/個性：${v(formData.personality)}
+*學員故事背景（可自由描述）：${v(formData.story)}
 
 📞 Demo 過程紀錄
-
-Demo 中聊到的內容：
-${v(formData.demoContent)}
-
-是否有作品集可提供（是就附上附上連結）：
-${v(formData.portfolio)}
-
-*話術內容：
-${v(formData.salesScript)}`;
+Demo 中聊到的內容：${v(formData.demoContent)}
+是否有作品集可提供（是就附上附上連結）：${v(formData.portfolio)}
+*話術內容：${v(formData.salesScript)}`;
 }
 
 module.exports = router;
