@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>客服溝通紀錄</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f3ef;
+      --surface: #ffffff;
+      --border: #dddbd5;
+      --border-focus: #1a1a1a;
+      --text: #1a1a1a;
+      --text-muted: #888;
+      --accent: #2d5a3d;
+      --accent-light: #e8f0ea;
+      --error: #c0392b;
+      --success: #2d5a3d;
+      --radius: 6px;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px 80px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 36px;
+    }
+    .header-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Form elements */
+    .field {
+      margin-bottom: 18px;
+    }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    label .req {
+      color: var(--error);
+      margin-left: 2px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus);
+      background: #fff;
+    }
+    input::placeholder, textarea::placeholder {
+      color: var(--text-muted);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    /* Search row */
+    .search-row {
+      display: flex;
+      gap: 8px;
+    }
+    .search-row input { flex: 1; }
+
+    .btn {
+      padding: 10px 18px;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-search {
+      background: var(--text);
+      color: #fff;
+    }
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      padding: 14px;
+      font-size: 15px;
+      margin-top: 4px;
+    }
+
+    /* Member result */
+    .member-result {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: var(--accent-light);
+      border: 1px solid #c3d9c8;
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
+    .member-result.show { display: flex; align-items: center; gap: 12px; }
+    .member-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .member-name { font-weight: 600; }
+    .member-email { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+    /* Alert */
+    .alert {
+      display: none;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-top: 14px;
+    }
+    .alert.show { display: block; }
+    .alert-error { background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error); }
+    .alert-success { background: var(--accent-light); border: 1px solid #c3d9c8; color: var(--success); }
+
+    /* Two-col grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 480px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* Form section hidden until member found */
+    #formSection { display: none; }
+    #formSection.show { display: block; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-label">Internal Tool</div>
+    <h1>客服溝通紀錄</h1>
+  </div>
+
+  <!-- Step 1: 搜尋會員 -->
+  <div class="card">
+    <div class="card-title">01 · 搜尋學員</div>
+
+    <div class="field">
+      <label>品牌<span class="req">*</span></label>
+      <select id="brandSelect">
+        <option value="">載入中...</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>學員信箱<span class="req">*</span></label>
+      <div class="search-row">
+        <input type="email" id="emailInput" placeholder="student@example.com" />
+        <button class="btn btn-search" id="searchBtn" onclick="searchMember()">搜尋</button>
+      </div>
+    </div>
+
+    <div class="member-result" id="memberResult">
+      <div class="member-avatar" id="memberAvatar"></div>
+      <div>
+        <div class="member-name" id="memberName"></div>
+        <div class="member-email" id="memberEmail"></div>
+      </div>
+    </div>
+
+    <div class="alert alert-error" id="searchError"></div>
+  </div>
+
+  <!-- Step 2: 填寫紀錄 -->
+  <div id="formSection">
+    <div class="card">
+      <div class="card-title">02 · 學員資訊</div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>購買方案</label>
+          <input type="text" id="plan" placeholder="例：職能一年方案" />
+        </div>
+        <div class="field">
+          <label>訓練營</label>
+          <input type="text" id="camp" placeholder="例：前端工程" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>背景科系／職業</label>
+          <input type="text" id="background" placeholder="例：資管系 / 業務" />
+        </div>
+        <div class="field">
+          <label>教材</label>
+          <select id="material">
+            <option value="">請選擇</option>
+            <option>有</option>
+            <option>無</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>上課形式</label>
+        <select id="mode">
+          <option value="">請選擇</option>
+          <option>線上</option>
+          <option>實體</option>
+          <option>混合</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">03 · 溝通紀錄</div>
+
+      <div class="field">
+        <label>溝通內容<span class="req">*</span></label>
+        <textarea id="note" placeholder="記錄本次溝通的重點、學員問題、後續追蹤事項..."></textarea>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>記錄人員<span class="req">*</span></label>
+        <input type="text" id="staffName" placeholder="你的名字" />
+      </div>
+
+      <button class="btn btn-submit" id="submitBtn" onclick="submitNote()">送出並同步 CRM</button>
+
+      <div class="alert alert-error" id="submitError"></div>
+      <div class="alert alert-success" id="submitSuccess"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let foundMemberId = null;
+
+  // 載入品牌清單
+  async function loadBrands() {
+    try {
+      const res = await fetch('/api/brands');
+      const json = await res.json();
+      const select = document.getElementById('brandSelect');
+      select.innerHTML = '<option value="">選擇品牌</option>';
+      json.data.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.key;
+        opt.textContent = b.name;
+        select.appendChild(opt);
+      });
+    } catch (e) {
+      document.getElementById('brandSelect').innerHTML = '<option value="">載入失敗</option>';
+    }
+  }
+
+  // 搜尋會員
+  async function searchMember() {
+    const brandKey = document.getElementById('brandSelect').value;
+    const email    = document.getElementById('emailInput').value.trim();
+    const errEl    = document.getElementById('searchError');
+    const resultEl = document.getElementById('memberResult');
+    const formEl   = document.getElementById('formSection');
+
+    errEl.classList.remove('show');
+    resultEl.classList.remove('show');
+    formEl.classList.remove('show');
+    foundMemberId = null;
+
+    if (!brandKey) return showError(errEl, '請先選擇品牌');
+    if (!email)    return showError(errEl, '請輸入學員信箱');
+
+    const btn = document.getElementById('searchBtn');
+    btn.disabled = true;
+    btn.textContent = '搜尋中...';
+
+    try {
+      const res  = await fetch('/api/member/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, brandKey }),
+      });
+      const json = await res.json();
+
+      if (!json.success) return showError(errEl, json.message);
+
+      const m = json.data;
+      foundMemberId = m.id;
+
+      document.getElementById('memberAvatar').textContent = m.name?.[0] || '?';
+      document.getElementById('memberName').textContent   = m.name;
+      document.getElementById('memberEmail').textContent  = m.email;
+      resultEl.classList.add('show');
+      formEl.classList.add('show');
+    } catch (e) {
+      showError(errEl, '連線失敗，請稍後再試');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '搜尋';
+    }
+  }
+
+  // 送出紀錄
+  async function submitNote() {
+    const errEl     = document.getElementById('submitError');
+    const successEl = document.getElementById('submitSuccess');
+    errEl.classList.remove('show');
+    successEl.classList.remove('show');
+
+    const brandKey  = document.getElementById('brandSelect').value;
+    const staffName = document.getElementById('staffName').value.trim();
+    const note      = document.getElementById('note').value.trim();
+
+    if (!foundMemberId) return showError(errEl, '請先搜尋學員');
+    if (!note)          return showError(errEl, '請填寫溝通紀錄內容');
+    if (!staffName)     return showError(errEl, '請填寫記錄人員');
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '同步中...';
+
+    const formData = {
+      memberName:  document.getElementById('memberName').textContent,
+      background:  document.getElementById('background').value.trim(),
+      plan:        document.getElementById('plan').value.trim(),
+      camp:        document.getElementById('camp').value.trim(),
+      mode:        document.getElementById('mode').value,
+      material:    document.getElementById('material').value,
+      note,
+    };
+
+    try {
+      const res  = await fetch('/api/note', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brandKey, memberId: foundMemberId, staffName, formData }),
+      });
+      const json = await res.json();
+
+      if (!json.success) return showError(errEl, json.message);
+
+      successEl.textContent = '✅ 已成功寫入 CRM！';
+      successEl.classList.add('show');
+      resetForm();
+    } catch (e) {
+      showError(errEl, '連線失敗，請稍後再試');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '送出並同步 CRM';
+    }
+  }
+
+  function showError(el, msg) {
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  function resetForm() {
+    ['plan','camp','background','note','staffName'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    ['mode','material'].forEach(id => {
+      document.getElementById(id).selectedIndex = 0;
+    });
+  }
+
+  // Enter 鍵觸發搜尋
+  document.addEventListener('DOMContentLoaded', () => {
+    loadBrands();
+    document.getElementById('emailInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') searchMember();
+    });
+  });
+</script>
+</body>
+</html>
