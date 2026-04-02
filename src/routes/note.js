@@ -56,58 +56,86 @@ router.post('/', async (req, res) => {
 });
 
 function formatNote(formData, staffName, brandKey) {
-  const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
-  const footer = `\n\n---\n記錄人員：${staffName || '-'}\n記錄時間：${now}`;
+  const v = val => val || '';
 
   if (brandKey === 'xlab') {
-    return `【客服溝通紀錄】
+    return `📌 學員基本資料
 
-📌 學員基本資料
-學員姓名：${formData.memberName || '-'}
-學員背景科系&職業：${formData.background || '-'}
-訓練營梯次：${formData.campSession || '-'}
-實體/線上：${formData.mode || '-'}
-教材名稱：${formData.material || '-'}
+*學員姓名：${v(formData.memberName)}
+
+*學員背景科系&職業：${v(formData.background)}
+
+*訓練營梯次：${v(formData.campSession)}
+
+*實體/線上：${v(formData.mode)}
+
+*教材名稱：${v(formData.material)}
 
 📞 Demo 過程紀錄
-Demo 中聊到的內容：${formData.demoContent || '-'}` + footer;
+
+Demo 中聊到的內容：
+${v(formData.demoContent)}`;
   }
 
   if (brandKey === 'nschool') {
-    return `【客服溝通紀錄】
+    return `📌 學員基本資料
 
-📌 學員基本資料
-學員姓名：${formData.memberName || '-'}
-學員背景科系&職業：${formData.background || '-'}
-購買領域：${formData.purchaseDomain || '-'}
+*學員姓名：${v(formData.memberName)}
+
+*學員背景科系&職業：${v(formData.background)}
+
+*購買領域：${v(formData.purchaseDomain)}
 
 🎯 學習目標與動機
-加入學院的期待（短、中、長期目標）：${formData.expectation || '-'}
-學員特質/個性：${formData.personality || '-'}
-學員故事背景：${formData.story || '-'}
+
+*加入學院的期待（短、中、長期目標）：
+${v(formData.expectation)}
+
+*學員特質/個性：
+${v(formData.personality)}
+
+*學員故事背景（可自由描述）：
+${v(formData.story)}
 
 📞 Demo 過程紀錄
-Demo 中聊到的內容：${formData.demoContent || '-'}
-話術內容：${formData.salesScript || '-'}` + footer;
+
+Demo 中聊到的內容：
+${v(formData.demoContent)}
+
+*話術內容：
+${v(formData.salesScript)}`;
   }
 
   // xuemi / sixdigital / kkschool
-  return `【客服溝通紀錄】
+  return `📌 學員基本資料
 
-📌 學員基本資料
-學員姓名：${formData.memberName || '-'}
-學員背景科系&職業：${formData.background || '-'}
-購買領域：${formData.purchaseDomain || '-'}
+*學員姓名：${v(formData.memberName)}
+
+*學員背景科系&職業：${v(formData.background)}
+
+*購買領域：${v(formData.purchaseDomain)}
 
 🎯 學習目標與動機
-加入學院的期待（短、中、長期目標）：${formData.expectation || '-'}
-學員特質/個性：${formData.personality || '-'}
-學員故事背景：${formData.story || '-'}
+
+*加入學院的期待（短、中、長期目標）：
+${v(formData.expectation)}
+
+*學員特質/個性：
+${v(formData.personality)}
+
+*學員故事背景（可自由描述）：
+${v(formData.story)}
 
 📞 Demo 過程紀錄
-Demo 中聊到的內容：${formData.demoContent || '-'}
-是否有作品集可提供：${formData.portfolio || '-'}
-話術內容：${formData.salesScript || '-'}` + footer;
+
+Demo 中聊到的內容：
+${v(formData.demoContent)}
+
+是否有作品集可提供（是就附上附上連結）：
+${v(formData.portfolio)}
+
+*話術內容：
+${v(formData.salesScript)}`;
 }
 
 module.exports = router;
