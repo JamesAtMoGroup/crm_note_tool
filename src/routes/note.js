@@ -74,7 +74,9 @@ function formatNote(formData, staffName, brandKey) {
 📞 Demo 過程紀錄
 
 Demo 中聊到的內容：
-${v(formData.demoContent)}`;
+${v(formData.demoContent)}
+
+記錄人員：${staffName || '-'}`;
   }
 
   if (brandKey === 'nschool') {
@@ -90,7 +92,9 @@ ${v(formData.demoContent)}`;
 
 📞 Demo 過程紀錄
 Demo 中聊到的內容：${v(formData.demoContent)}
-*話術內容：${v(formData.salesScript)}`;
+*話術內容：${v(formData.salesScript)}
+
+記錄人員：${staffName || '-'}`;
   }
 
   // xuemi / sixdigital / kkschool
@@ -107,7 +111,9 @@ Demo 中聊到的內容：${v(formData.demoContent)}
 📞 Demo 過程紀錄
 Demo 中聊到的內容：${v(formData.demoContent)}
 是否有作品集可提供（是就附上附上連結）：${v(formData.portfolio)}
-*話術內容：${v(formData.salesScript)}`;
+*話術內容：${v(formData.salesScript)}
+
+記錄人員：${staffName || '-'}`;
 }
 
 module.exports = router;
