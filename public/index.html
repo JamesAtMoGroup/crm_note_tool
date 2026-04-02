@@ -422,7 +422,6 @@
         section('📌 學員基本資料') +
         field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
         field('學員背景科系&職業', 'f_background', 'textarea', { required: true, placeholder: '例：資管系 / 業務' }) +
-        field('購買方案', 'f_plan', 'text', { required: true, placeholder: '例：全領域年約' }) +
         field('訓練營梯次', 'f_campSession', 'text', { required: true, placeholder: '日期_主題，尚未開課填「尚未」' }) +
         field('實體/線上', 'f_mode', 'select', { required: true, options: ['實體','線上','實體+線上'] }) +
         field('教材名稱', 'f_material', 'select', { required: true, options: XLAB_MATERIALS }) +
@@ -503,7 +502,6 @@
       return {
         memberName:  foundMemberName,
         background:  get('f_background'),
-        plan:        get('f_plan'),
         campSession: get('f_campSession'),
         mode:        get('f_mode'),
         material:    get('f_material'),

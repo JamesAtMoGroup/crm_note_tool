@@ -65,7 +65,6 @@ function formatNote(formData, staffName, brandKey) {
 📌 學員基本資料
 學員姓名：${formData.memberName || '-'}
 學員背景科系&職業：${formData.background || '-'}
-購買方案：${formData.plan || '-'}
 訓練營梯次：${formData.campSession || '-'}
 實體/線上：${formData.mode || '-'}
 教材名稱：${formData.material || '-'}
