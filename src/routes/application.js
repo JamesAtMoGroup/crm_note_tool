@@ -64,7 +64,7 @@ router.post('/create', requireAuth, async (req, res) => {
 
     // CRM note（送出時）
     if (r.success && memberId) {
-      const desc = `📋 特殊申請送出\n申請人：${applicantName}\n項目：${finalItem}\n類型：${fmtDeduct(deductType, deductValue)}\n目的：${purpose}\n需求：${requirement}\n申請單號：${r.applicationId}`;
+      const desc = `📋 特殊申請送出\n申請人：${applicantName}\n項目：${finalItem}\n類型：${fmtDeduct(deductType, deductValue)}\n目的：${purpose}\n需求：${requirement}${managerApproval ? `\n主管同意：經 ${managerApproval} 主管同意` : ''}\n申請單號：${r.applicationId}`;
       writeCrmNote(brandKey, memberId, desc).catch(e => console.error('[CRM note create]', e.message));
     }
 
