@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>統計分析</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ops.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    .analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:700px){ .analytics-grid{grid-template-columns:1fr;} }
+    .analytics-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+    .analytics-title { font-size:12px; font-family:'DM Mono',monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:14px; }
+    canvas { max-height:220px; }
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-brand">OPS</span>
+  <a href="/apply">特殊申請</a>
+  <a href="/admin/review">審核</a>
+  <a href="/admin/categories/list">分類目錄</a>
+  <a href="/admin/categories/edit">分類編輯</a>
+  <a href="/admin/analytics">統計</a>
+  <div class="nav-right"><button class="nav-logout" onclick="opsLogout()">登出</button></div>
+</nav>
+
+<div class="main">
+  <div class="page-header"><div class="page-title">統計分析</div></div>
+
+  <!-- 篩選 -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="filter-bar">
+      <div class="field"><label>起日</label><input type="date" id="filterStart"/></div>
+      <div class="field"><label>迄日</label><input type="date" id="filterEnd"/></div>
+      <button class="btn btn-dark btn-sm" onclick="loadAnalytics()">套用</button>
+      <button class="btn btn-outline btn-sm" onclick="resetFilter()">重置（當月）</button>
+    </div>
+  </div>
+
+  <div id="analyticsArea"><div class="empty">載入中...</div></div>
+</div>
+
+<script src="/ops.js"></script>
+<script>
+  let chartC = null, chartD = null;
+
+  window.addEventListener('DOMContentLoaded', () => {
+    initOpsPage('/admin/analytics');
+    resetFilter();
+  });
+
+  function resetFilter() {
+    const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('filterStart').value = `${y}-${m}-01`;
+    document.getElementById('filterEnd').value   = `${y}-${m}-${String(new Date(y,now.getMonth()+1,0).getDate()).padStart(2,'0')}`;
+    loadAnalytics();
+  }
+
+  async function loadAnalytics() {
+    document.getElementById('analyticsArea').innerHTML = '<div class="empty">計算中...</div>';
+    const start = document.getElementById('filterStart').value;
+    const end   = document.getElementById('filterEnd').value;
+    const params = new URLSearchParams();
+    if (start) params.append('startDate', start);
+    if (end)   params.append('endDate', end);
+    try {
+      const r = await opsGet(`/api/analytics/summary?${params}`);
+      if (!r.success) throw new Error(r.message);
+      renderAnalytics(r.data);
+    } catch { document.getElementById('analyticsArea').innerHTML = '<div class="empty">載入失敗，請重試</div>'; }
+  }
+
+  function matrixTable(rows, keyField, months, keyLabel) {
+    if (!rows.length) return '<div class="empty">無資料</div>';
+    const header = `<tr><th>${keyLabel}</th>${months.map(m=>`<th>${m}</th>`).join('')}<th>合計</th></tr>`;
+    const body   = rows.map(r =>
+      `<tr><td>${r[keyField]}</td>${months.map(m=>`<td>${r[m]||0}</td>`).join('')}<td><strong>${r.total}</strong></td></tr>`
+    ).join('');
+    return `<div class="table-wrap"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+  }
+
+  function renderAnalytics(d) {
+    if (chartC) { chartC.destroy(); chartC = null; }
+    if (chartD) { chartD.destroy(); chartD = null; }
+
+    const months = d.months;
+    let html = `
+      <div class="section-heading">Section A — 時間 × 項目</div>
+      <div class="analytics-card" style="margin-bottom:16px">${matrixTable(d.sectionA,'item',months,'申請項目')}</div>
+
+      <div class="section-heading">Section B — 時間 × 品牌</div>
+      <div class="analytics-card" style="margin-bottom:16px">${matrixTable(d.sectionB,'brand',months,'品牌')}</div>
+
+      <div class="analytics-grid" style="margin-bottom:16px">
+        <div class="analytics-card">
+          <div class="analytics-title">Section C — 審核結果分佈</div>
+          <canvas id="chartC"></canvas>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-title">Section D — 扣%加總（核准）</div>
+          <canvas id="chartD"></canvas>
+        </div>
+      </div>
+
+      <div class="section-heading">Section E — 申請人排行榜</div>
+      <div class="analytics-card">
+        ${d.sectionE.length ? `<div class="table-wrap"><table>
+          <thead><tr><th>申請人</th><th>總筆數</th><th>核准數</th><th>累計扣%</th></tr></thead>
+          <tbody>${d.sectionE.map(e=>`<tr><td>${e.applicant}</td><td>${e.total}</td><td>${e.approved}</td><td><strong>${e.totalDeduct}%</strong></td></tr>`).join('')}</tbody>
+        </table></div>` : '<div class="empty">無資料</div>'}
+      </div>
+    `;
+    document.getElementById('analyticsArea').innerHTML = html;
+
+    // Chart C
+    if (d.sectionC.length) {
+      chartC = new Chart(document.getElementById('chartC'), {
+        type: 'bar',
+        data: {
+          labels:   d.sectionC.map(r => r.month),
+          datasets: [
+            { label:'核准', data: d.sectionC.map(r=>r.approved), backgroundColor:'#2d5a3d' },
+            { label:'拒絕', data: d.sectionC.map(r=>r.rejected), backgroundColor:'#c0392b' },
+            { label:'待審', data: d.sectionC.map(r=>r.pending),  backgroundColor:'#d97706' },
+          ],
+        },
+        options: { responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ x:{stacked:true}, y:{stacked:true,beginAtZero:true} } },
+      });
+    }
+
+    // Chart D
+    if (d.sectionD.length) {
+      chartD = new Chart(document.getElementById('chartD'), {
+        type: 'bar',
+        data: {
+          labels:   d.sectionD.map(r => r.brand),
+          datasets: [{ label:'累計扣%', data: d.sectionD.map(r=>r.totalDeduct), backgroundColor:'#1a1a1a' }],
+        },
+        options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } },
+      });
+    }
+  }
+</script>
+</body>
+</html>

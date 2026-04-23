@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>分類編輯</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ops.css">
+  <style>
+    .cat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+    .cat-card.inactive { opacity:.55; }
+    .cat-info { flex:1; }
+    .cat-name { font-size:14px; font-weight:500; }
+    .cat-meta { font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .cat-actions { display:flex; gap:6px; flex-shrink:0; }
+    .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+    .dot-active   { background:var(--accent); }
+    .dot-inactive { background:var(--border); }
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-brand">OPS</span>
+  <a href="/apply">特殊申請</a>
+  <a href="/admin/review">審核</a>
+  <a href="/admin/categories/list">分類目錄</a>
+  <a href="/admin/categories/edit">分類編輯</a>
+  <a href="/admin/analytics">統計</a>
+  <div class="nav-right"><button class="nav-logout" onclick="opsLogout()">登出</button></div>
+</nav>
+
+<div class="main">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="page-title">分類編輯</div>
+    <button class="btn btn-primary" onclick="openModal()">＋ 新增分類</button>
+  </div>
+
+  <!-- 篩選 -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+    <select id="filterBrand" onchange="renderCats()" style="width:140px">
+      <option value="">全部品牌</option>
+      <option value="xuemi">學米</option>
+      <option value="sixdigital">無限</option>
+      <option value="kkschool">nschool職能</option>
+      <option value="nschool">nschool財經</option>
+      <option value="xlab">xlab</option>
+    </select>
+    <select id="filterActive" onchange="renderCats()" style="width:120px">
+      <option value="active">啟用中</option>
+      <option value="all">全部</option>
+      <option value="inactive">已停用</option>
+    </select>
+  </div>
+
+  <div id="listArea"><div class="empty">載入中...</div></div>
+</div>
+
+<!-- 新增/編輯 Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">新增分類</div>
+    <div class="field">
+      <label>品牌<span class="req">*</span></label>
+      <select id="fBrand">
+        <option value="">請選擇</option>
+        <option value="xuemi">學米</option>
+        <option value="sixdigital">無限</option>
+        <option value="kkschool">nschool職能</option>
+        <option value="nschool">nschool財經</option>
+        <option value="xlab">xlab</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>項目名稱<span class="req">*</span></label>
+      <input type="text" id="fItemName" placeholder="例：請假兩個月（累加+1%，最多半年）"/>
+    </div>
+    <div class="field">
+      <label>扣%類型<span class="req">*</span></label>
+      <select id="fDeductType" onchange="onDeductTypeChange()">
+        <option value="">請選擇</option>
+        <option value="固定">固定</option>
+        <option value="個案評估">個案評估</option>
+        <option value="不扣">不扣</option>
+      </select>
+    </div>
+    <div class="field" id="fDeductValueField">
+      <label>扣%值</label>
+      <input type="number" id="fDeductValue" min="0" max="100" step="0.5" placeholder="例：5"/>
+    </div>
+    <div class="field">
+      <label>寄信模板（選填）</label>
+      <textarea id="fEmailTemplate" placeholder="Hi {{學員姓名}}，&#10;&#10;您的特殊申請已核准：{{項目名稱}}。&#10;&#10;{{品牌}} 敬上" style="min-height:100px"></textarea>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">可用 placeholder：{{學員姓名}} {{項目名稱}} {{扣%值}} {{品牌}}</div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>排序</label>
+        <input type="number" id="fSort" min="1" placeholder="99"/>
+      </div>
+      <div class="field">
+        <label>備註</label>
+        <input type="text" id="fNote" placeholder="管理者自用備註"/>
+      </div>
+    </div>
+    <div class="alert" id="modalAlert"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveCategory()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script src="/ops.js"></script>
+<script>
+  const BRAND_DISPLAY_NAMES_MAP = { xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能', nschool:'nschool財經', xlab:'xlab' };
+  let allCats = [], editingId = null;
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    initOpsPage('/admin/categories/edit');
+    await loadCats();
+  });
+
+  async function loadCats() {
+    document.getElementById('listArea').innerHTML = '<div class="empty">載入中...</div>';
+    try {
+      const r = await opsGet('/api/categories/list?all=true');
+      allCats = r.data || [];
+      renderCats();
+    } catch { document.getElementById('listArea').innerHTML = '<div class="empty">載入失敗，請重試</div>'; }
+  }
+
+  function renderCats() {
+    const filterBrand  = document.getElementById('filterBrand').value;
+    const filterActive = document.getElementById('filterActive').value;
+    let cats = allCats;
+    if (filterBrand) cats = cats.filter(c => c.brandKey === filterBrand);
+    if (filterActive === 'active')   cats = cats.filter(c => c.isActive);
+    if (filterActive === 'inactive') cats = cats.filter(c => !c.isActive);
+    if (cats.length === 0) { document.getElementById('listArea').innerHTML = '<div class="empty">無符合條件的分類</div>'; return; }
+
+    const html = cats.map(c => `
+      <div class="cat-card ${c.isActive ? '' : 'inactive'}">
+        <div class="status-dot ${c.isActive ? 'dot-active' : 'dot-inactive'}"></div>
+        <div class="cat-info">
+          <div class="cat-name">${c.itemName}</div>
+          <div class="cat-meta">${BRAND_DISPLAY[c.brandKey]} · ${c.deductType}${c.deductType==='固定'?' '+( c.deductValue??0)+'%':''} ${c.emailTemplate?'· 有模板':''}</div>
+        </div>
+        <div class="cat-actions">
+          <button class="btn btn-outline btn-sm" onclick="openModal('${c.id}')">編輯</button>
+          ${c.isActive
+            ? `<button class="btn btn-outline btn-sm" style="color:var(--error);border-color:var(--error-border)" onclick="toggleActive('${c.id}','disable')">停用</button>`
+            : `<button class="btn btn-outline btn-sm" onclick="toggleActive('${c.id}','enable')">啟用</button>`}
+        </div>
+      </div>`).join('');
+    document.getElementById('listArea').innerHTML = html;
+  }
+
+  function onDeductTypeChange() {
+    const t   = document.getElementById('fDeductType').value;
+    const fld = document.getElementById('fDeductValueField');
+    const inp = document.getElementById('fDeductValue');
+    if (t === '個案評估') { fld.style.display = 'none'; inp.value = ''; inp.disabled = true; }
+    else if (t === '不扣') { fld.style.display = ''; inp.value = '0'; inp.disabled = true; }
+    else { fld.style.display = ''; inp.disabled = false; }
+  }
+
+  function openModal(id) {
+    editingId = id || null;
+    const cat = id ? allCats.find(c => c.id === id) : null;
+    document.getElementById('modalTitle').textContent = cat ? '編輯分類' : '新增分類';
+    document.getElementById('fBrand').value         = cat?.brandKey      || '';
+    document.getElementById('fItemName').value      = cat?.itemName      || '';
+    document.getElementById('fDeductType').value    = cat?.deductType    || '';
+    document.getElementById('fDeductValue').value   = cat?.deductValue ?? '';
+    document.getElementById('fEmailTemplate').value = cat?.emailTemplate || '';
+    document.getElementById('fSort').value          = cat?.sort          || '';
+    document.getElementById('fNote').value          = cat?.note          || '';
+    document.getElementById('modalAlert').classList.remove('show');
+    onDeductTypeChange();
+    document.getElementById('editModal').classList.add('show');
+  }
+
+  function closeModal() { document.getElementById('editModal').classList.remove('show'); }
+
+  async function saveCategory() {
+    const brand    = document.getElementById('fBrand').value;
+    const itemName = document.getElementById('fItemName').value.trim();
+    const deductT  = document.getElementById('fDeductType').value;
+    const deductV  = document.getElementById('fDeductValue').value;
+    const alert    = document.getElementById('modalAlert');
+    alert.classList.remove('show');
+    if (!brand)    return showAlert(alert, '請選擇品牌');
+    if (!itemName) return showAlert(alert, '請填寫項目名稱');
+    if (!deductT)  return showAlert(alert, '請選擇扣%類型');
+    if (deductT === '固定' && deductV === '') return showAlert(alert, '固定類型請填扣%值（可填 0）');
+
+    const btn = document.getElementById('modalSaveBtn');
+    btn.disabled = true; btn.textContent = '儲存中...';
+    try {
+      const data = {
+        brandKey:      brand,
+        brandDisplay:  BRAND_DISPLAY_NAMES_MAP[brand],
+        itemName,
+        deductType:    deductT,
+        deductValue:   deductT === '個案評估' ? null : parseFloat(deductV) || 0,
+        emailTemplate: document.getElementById('fEmailTemplate').value.trim() || null,
+        sort:          parseInt(document.getElementById('fSort').value) || 99,
+        note:          document.getElementById('fNote').value.trim(),
+      };
+      const r = await opsPost('/api/categories/save', {
+        operation:  editingId ? 'update' : 'create',
+        categoryId: editingId || undefined,
+        data,
+      });
+      if (!r.success) return showAlert(alert, r.message || '儲存失敗');
+      closeModal();
+      await loadCats();
+    } catch { showAlert(alert, '連線失敗，請重試'); }
+    finally { btn.disabled = false; btn.textContent = '儲存'; }
+  }
+
+  async function toggleActive(id, op) {
+    if (!confirm(op === 'disable' ? '確定停用此分類？' : '確定啟用此分類？')) return;
+    try {
+      await opsPost('/api/categories/save', { operation: op, categoryId: id });
+      await loadCats();
+    } catch { alert('操作失敗，請重試'); }
+  }
+</script>
+</body>
+</html>

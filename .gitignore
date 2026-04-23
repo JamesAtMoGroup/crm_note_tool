@@ -1,2 +1,5 @@
 node_modules/
 .env
+brands.txt
+scripts/
+*.DS_Store

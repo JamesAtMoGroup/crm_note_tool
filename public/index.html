@@ -3,755 +3,182 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>客服溝通紀錄</title>
+  <title>客服工具 — 登入</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #f4f3ef;
-      --surface: #ffffff;
-      --border: #dddbd5;
-      --border-focus: #1a1a1a;
-      --text: #1a1a1a;
-      --text-muted: #888;
-      --accent: #2d5a3d;
-      --accent-light: #e8f0ea;
-      --error: #c0392b;
-      --success: #2d5a3d;
+      --bg: #f4f3ef; --surface: #ffffff; --border: #dddbd5;
+      --border-focus: #1a1a1a; --text: #1a1a1a; --text-muted: #888;
+      --accent: #2d5a3d; --accent-light: #e8f0ea; --error: #c0392b;
       --radius: 6px;
     }
-
     body {
       font-family: 'Noto Sans TC', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 40px 16px 80px;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center; padding: 24px 16px;
     }
+    .wrap { width: 100%; max-width: 400px; }
+    .logo-label {
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      letter-spacing: 0.12em; color: var(--text-muted);
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 28px; }
 
-    .container {
-      width: 100%;
-      max-width: 680px;
-    }
-
-    /* Header */
-    .header {
-      margin-bottom: 36px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-    .header-left {}
-    .header-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .header h1 {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
-    .brand-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 6px;
-      padding: 4px 10px;
-      background: var(--accent-light);
-      border: 1px solid #c3d9c8;
-      border-radius: 20px;
-      font-size: 12px;
-      color: var(--accent);
-      font-weight: 500;
-    }
-    .logout-btn {
-      margin-top: 8px;
-      padding: 6px 14px;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .logout-btn:hover { border-color: var(--text-muted); color: var(--text); }
-
-    /* Card */
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-      margin-bottom: 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 12px;
     }
     .card-title {
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 18px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
     }
-    .section-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      margin: 20px 0 14px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
+    .field { margin-bottom: 16px; }
+    .field:last-of-type { margin-bottom: 0; }
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    input, select {
+      width: 100%; padding: 10px 14px;
+      font-family: 'Noto Sans TC', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--bg);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      outline: none; transition: border-color .15s; appearance: none;
     }
-    .section-label:first-child { margin-top: 0; }
-
-    /* Form elements */
-    .field {
-      margin-bottom: 18px;
-    }
-    .field:last-child { margin-bottom: 0; }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-    label .req { color: var(--error); margin-left: 2px; }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 10px 14px;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 14px;
-      color: var(--text);
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      outline: none;
-      transition: border-color 0.15s, background 0.15s;
-      appearance: none;
-    }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--border-focus);
-      background: #fff;
-    }
-    input::placeholder, textarea::placeholder { color: var(--text-muted); }
-    input[readonly] { color: var(--text-muted); cursor: default; }
+    input:focus, select:focus { border-color: var(--border-focus); background: #fff; }
     select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 36px;
-      cursor: pointer;
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer;
     }
-    textarea {
-      resize: vertical;
-      min-height: 90px;
-      line-height: 1.6;
-    }
-
-    /* Search row */
-    .search-row { display: flex; gap: 8px; }
-    .search-row input { flex: 1; }
-
     .btn {
-      padding: 10px 18px;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      border-radius: var(--radius);
-      border: none;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-      white-space: nowrap;
+      width: 100%; padding: 13px; margin-top: 16px;
+      font-family: 'Noto Sans TC', sans-serif; font-size: 14px; font-weight: 500;
+      border: none; border-radius: var(--radius); cursor: pointer;
+      transition: opacity .15s, transform .1s;
     }
     .btn:active { transform: scale(0.98); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .btn-search { background: var(--text); color: #fff; }
-    .btn-submit {
-      width: 100%;
-      background: var(--accent);
-      color: #fff;
-      padding: 14px;
-      font-size: 15px;
-      margin-top: 4px;
+    .btn-brand { background: var(--text); color: #fff; }
+    .btn-ops   { background: var(--accent); color: #fff; }
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 4px 0; color: var(--text-muted); font-size: 12px;
     }
-    .btn-login {
-      width: 100%;
-      background: var(--text);
-      color: #fff;
-      padding: 14px;
-      font-size: 15px;
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
     }
-
-    /* Member result */
-    .member-result {
-      display: none;
-      margin-top: 14px;
-      padding: 14px 16px;
-      background: var(--accent-light);
-      border: 1px solid #c3d9c8;
-      border-radius: var(--radius);
-      font-size: 13px;
-    }
-    .member-result.show { display: flex; align-items: center; gap: 12px; }
-    .member-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 600; font-size: 14px; flex-shrink: 0;
-    }
-    .member-name { font-weight: 600; }
-    .member-email { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
-
-    /* Alert */
     .alert {
-      display: none;
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      margin-top: 14px;
+      display: none; padding: 10px 14px; border-radius: var(--radius);
+      font-size: 13px; margin-top: 12px;
+      background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error);
     }
     .alert.show { display: block; }
-    .alert-error { background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error); }
-    .alert-success { background: var(--accent-light); border: 1px solid #c3d9c8; color: var(--success); }
-
-    /* Login view */
-    #loginView {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      width: 100%;
-      position: fixed;
-      top: 0; left: 0;
-      background: var(--bg);
-      z-index: 10;
-    }
-    #loginView.hidden { display: none; }
-    .login-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 36px 32px;
-      width: 100%;
-      max-width: 360px;
-    }
-    .login-box .header-label { margin-bottom: 4px; }
-    .login-box h1 { font-size: 20px; font-weight: 600; margin-bottom: 28px; }
-
-    #formSection { display: none; }
-    #formSection.show { display: block; }
-
-    .divider { height: 1px; background: var(--border); margin: 20px 0; }
-
-    /* Modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal {
-      background: var(--surface);
-      border-radius: var(--radius);
-      width: 100%;
-      max-width: 560px;
-      max-height: 85vh;
-      overflow-y: auto;
-      padding: 32px;
-    }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .modal-check {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: var(--accent-light);
-      border: 1px solid #c3d9c8;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
-    }
-    .modal-title { font-size: 18px; font-weight: 600; }
-    .modal-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-    .modal-divider { height: 1px; background: var(--border); margin: 20px 0; }
-    .modal-section-label {
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-    .modal-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .modal-row-label {
-      color: var(--text-muted);
-      flex-shrink: 0;
-      width: 140px;
-    }
-    .modal-row-value { color: var(--text); white-space: pre-wrap; word-break: break-word; }
-    .btn-new {
-      width: 100%;
-      margin-top: 24px;
-      background: var(--accent);
-      color: #fff;
-      padding: 13px;
-      font-size: 14px;
-    }
   </style>
 </head>
 <body>
+<div class="wrap">
+  <div class="logo-label">Internal Tool</div>
+  <h1>客服工具</h1>
 
-<!-- 登入畫面 -->
-<div id="loginView">
-  <div class="login-box">
-    <div class="header-label">Internal Tool</div>
-    <h1>客服溝通紀錄</h1>
+  <!-- 顧問登入 -->
+  <div class="card">
+    <div class="card-title">顧問登入</div>
     <div class="field">
-      <label>選擇帳號<span class="req">*</span></label>
-      <select id="loginSelect">
+      <label>選擇品牌</label>
+      <select id="brandSelect">
         <option value="">請選擇</option>
         <option value="xuemi">學米</option>
         <option value="sixdigital">無限</option>
-        <option value="kkschool">職能</option>
-        <option value="nschool">財經</option>
+        <option value="kkschool">nschool職能</option>
+        <option value="nschool">nschool財經</option>
         <option value="xlab">xlab</option>
-        <option value="aischool">ai未來學院</option>
+        <option value="aischool">AI未來學院</option>
       </select>
     </div>
-    <div class="field" style="margin-top:8px;">
-      <button class="btn btn-login" onclick="login()">登入</button>
-    </div>
-    <div class="alert alert-error" id="loginError"></div>
-  </div>
-</div>
-
-<!-- 主畫面 -->
-<div class="container" id="appView" style="display:none;">
-  <div class="header">
-    <div class="header-left">
-      <div class="header-label">Internal Tool</div>
-      <h1>客服溝通紀錄</h1>
-      <div class="brand-badge" id="brandBadge"></div>
-    </div>
-    <button class="logout-btn" onclick="logout()">登出</button>
+    <button class="btn btn-brand" onclick="loginBrand()">登入</button>
+    <div class="alert" id="brandError"></div>
   </div>
 
-  <!-- Step 1: 搜尋會員 -->
+  <div class="divider">或</div>
+
+  <!-- OPS 登入 -->
   <div class="card">
-    <div class="card-title">01 · 搜尋學員</div>
+    <div class="card-title">OPS 登入</div>
     <div class="field">
-      <label>學員信箱<span class="req">*</span></label>
-      <div class="search-row">
-        <input type="email" id="emailInput" placeholder="student@example.com" />
-        <button class="btn btn-search" id="searchBtn" onclick="searchMember()">搜尋</button>
-      </div>
+      <label>Email</label>
+      <input type="email" id="opsEmail" placeholder="輸入 Email" />
     </div>
-    <div class="member-result" id="memberResult">
-      <div class="member-avatar" id="memberAvatar"></div>
-      <div>
-        <div class="member-name" id="memberName"></div>
-        <div class="member-email" id="memberEmail"></div>
-      </div>
-    </div>
-    <div class="alert alert-error" id="searchError"></div>
-  </div>
-
-  <!-- Step 2: 填寫紀錄 -->
-  <div id="formSection">
-    <div class="card">
-      <div class="card-title">02 · 填寫紀錄</div>
-      <div id="dynamicForm"></div>
-    </div>
-
-    <div class="card">
-      <div class="field">
-        <label>記錄人員<span class="req">*</span></label>
-        <input type="text" id="staffName" placeholder="你的名字" />
-      </div>
-      <button class="btn btn-submit" id="submitBtn" onclick="submitNote()">送出並同步 CRM</button>
-      <div class="alert alert-error" id="submitError"></div>
-      <div class="alert alert-success" id="submitSuccess"></div>
-    </div>
-  </div>
-</div>
-
-<!-- 送出成功 Modal -->
-<div class="modal-overlay" id="successModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-check">✅</div>
-      <div>
-        <div class="modal-title">已成功寫入 CRM</div>
-        <div class="modal-subtitle" id="modalSubtitle"></div>
-      </div>
-    </div>
-    <div class="modal-divider"></div>
-    <div id="modalBody"></div>
-    <button class="btn btn-new" onclick="closeModalAndReset()">再寫一筆</button>
+    <button class="btn btn-ops" onclick="loginOps()">登入</button>
+    <div class="alert" id="opsError"></div>
   </div>
 </div>
 
 <script>
-  const BRAND_NAMES = {
-    xuemi: '學米', sixdigital: '無限', kkschool: '職能', nschool: '財經', xlab: 'xlab', aischool: 'ai未來學院'
+  const BRAND_DISPLAY = {
+    xuemi: '學米', sixdigital: '無限', kkschool: 'nschool職能',
+    nschool: 'nschool財經', xlab: 'xlab', aischool: 'AI未來學院',
   };
 
-  const XLAB_MATERIALS = [
-    '【MKT】數位行銷','【DE】商用設計','【KOL】網紅多媒體',
-    '【PRD】產品設計','【WEB】網站工程','【AI】人工智慧、Python',
-    '【WA】AI高效工具(n8n、GAS)','【ALL】全領域'
-  ];
+  // 已登入則直接跳轉
+  window.addEventListener('DOMContentLoaded', () => {
+    const brand = sessionStorage.getItem('brandKey');
+    if (brand && BRAND_DISPLAY[brand]) { location.href = '/note'; return; }
 
-  let currentBrand = null;
-  let foundMemberId = null;
-  let foundMemberName = null;
+    const ops = getOpsSession();
+    if (ops) { location.href = '/apply'; return; }
 
-  // ── Login ──────────────────────────────────────────
-  function checkLogin() {
-    const saved = sessionStorage.getItem('brandKey');
-    if (saved && BRAND_NAMES[saved]) {
-      enterApp(saved);
-    }
-  }
-
-  function login() {
-    const val = document.getElementById('loginSelect').value;
-    const errEl = document.getElementById('loginError');
-    if (!val) {
-      errEl.textContent = '請選擇帳號';
-      errEl.classList.add('show');
-      return;
-    }
-    sessionStorage.setItem('brandKey', val);
-    enterApp(val);
-  }
-
-  function logout() {
-    sessionStorage.removeItem('brandKey');
-    currentBrand = null;
-    foundMemberId = null;
-    foundMemberName = null;
-    document.getElementById('appView').style.display = 'none';
-    document.getElementById('loginView').classList.remove('hidden');
-    document.getElementById('loginSelect').value = '';
-    document.getElementById('loginError').classList.remove('show');
-  }
-
-  function enterApp(brandKey) {
-    currentBrand = brandKey;
-    document.getElementById('loginView').classList.add('hidden');
-    document.getElementById('appView').style.display = 'block';
-    document.getElementById('brandBadge').textContent = BRAND_NAMES[brandKey] || brandKey;
-    renderForm(brandKey);
-    resetAll();
-  }
-
-  // ── Form rendering ─────────────────────────────────
-  function field(label, id, type, opts = {}) {
-    const req = opts.required ? '<span class="req">*</span>' : '';
-    const ph = opts.placeholder || '';
-    let input = '';
-    if (type === 'textarea') {
-      input = `<textarea id="${id}" placeholder="${ph}"></textarea>`;
-    } else if (type === 'select') {
-      const options = opts.options.map(o =>
-        typeof o === 'string'
-          ? `<option value="${o}">${o}</option>`
-          : `<option value="${o.v}">${o.l}</option>`
-      ).join('');
-      input = `<select id="${id}"><option value="">請選擇</option>${options}</select>`;
-    } else {
-      input = `<input type="text" id="${id}" placeholder="${ph}" ${opts.readonly ? 'readonly' : ''} />`;
-    }
-    return `<div class="field"><label>${label}${req}</label>${input}</div>`;
-  }
-
-  function section(title) {
-    return `<div class="section-label">${title}</div>`;
-  }
-
-  function renderForm(brandKey) {
-    const el = document.getElementById('dynamicForm');
-
-    if (brandKey === 'xlab') {
-      el.innerHTML =
-        section('📌 學員基本資料') +
-        field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
-        field('學員背景科系&職業', 'f_background', 'textarea', { required: true, placeholder: '例：資管系 / 業務' }) +
-        field('訓練營梯次', 'f_campSession', 'text', { required: true, placeholder: '日期_主題，尚未開課填「尚未」' }) +
-        field('實體/線上', 'f_mode', 'select', { required: true, options: ['實體','線上','實體+線上'] }) +
-        field('教材名稱', 'f_material', 'select', { required: true, options: XLAB_MATERIALS }) +
-        section('📞 Demo 過程紀錄') +
-        field('Demo 中聊到的內容', 'f_demoContent', 'textarea', { placeholder: '若有插班，請註明插班' });
-    } else {
-      const hasPortfolio = brandKey !== 'nschool';
-      el.innerHTML =
-        section('📌 學員基本資料') +
-        field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
-        field('學員背景科系&職業', 'f_background', 'textarea', { required: true, placeholder: '例：資管系 / 業務' }) +
-        field('購買領域', 'f_purchaseDomain', 'text', { required: true, placeholder: '例：前端工程' }) +
-        section('🎯 學習目標與動機') +
-        field('加入學院的期待（短、中、長期目標）', 'f_expectation', 'textarea', { required: true }) +
-        field('學員特質/個性', 'f_personality', 'textarea', { required: true }) +
-        field('學員故事背景（可自由描述）', 'f_story', 'textarea', { required: true }) +
-        section('📞 Demo 過程紀錄') +
-        field('Demo 中聊到的內容', 'f_demoContent', 'textarea') +
-        (hasPortfolio ? field('是否有作品集可提供（有請附連結）', 'f_portfolio', 'text', { placeholder: '無則留空' }) : '') +
-        field('話術內容', 'f_salesScript', 'textarea', { required: true });
-    }
-  }
-
-  // ── Search ─────────────────────────────────────────
-  async function searchMember() {
-    const email  = document.getElementById('emailInput').value.trim();
-    const errEl  = document.getElementById('searchError');
-    const resEl  = document.getElementById('memberResult');
-    const formEl = document.getElementById('formSection');
-
-    errEl.classList.remove('show');
-    resEl.classList.remove('show');
-    formEl.classList.remove('show');
-    foundMemberId = null; foundMemberName = null;
-
-    if (!email) return showError(errEl, '請輸入學員信箱');
-
-    const btn = document.getElementById('searchBtn');
-    btn.disabled = true; btn.textContent = '搜尋中...';
-
-    try {
-      const res  = await fetch('/api/member/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, brandKey: currentBrand }),
-      });
-      const json = await res.json();
-      if (!json.success) return showError(errEl, json.message);
-
-      const m = json.data;
-      foundMemberId   = m.id;
-      foundMemberName = m.name;
-
-      document.getElementById('memberAvatar').textContent = m.name?.[0] || '?';
-      document.getElementById('memberName').textContent   = m.name;
-      document.getElementById('memberEmail').textContent  = m.email;
-
-      const nameField = document.getElementById('f_memberName');
-      if (nameField) nameField.value = m.name;
-
-      resEl.classList.add('show');
-      formEl.classList.add('show');
-    } catch (e) {
-      showError(errEl, '連線失敗，請稍後再試');
-    } finally {
-      btn.disabled = false; btn.textContent = '搜尋';
-    }
-  }
-
-  // ── Submit ─────────────────────────────────────────
-  function getFormData() {
-    const get = id => {
-      const el = document.getElementById(id);
-      return el ? el.value.trim() : undefined;
-    };
-
-    if (currentBrand === 'xlab') {
-      return {
-        memberName:  foundMemberName,
-        background:  get('f_background'),
-        campSession: get('f_campSession'),
-        mode:        get('f_mode'),
-        material:    get('f_material'),
-        demoContent: get('f_demoContent'),
-      };
-    }
-
-    const data = {
-      memberName:    foundMemberName,
-      background:    get('f_background'),
-      purchaseDomain:get('f_purchaseDomain'),
-      expectation:   get('f_expectation'),
-      personality:   get('f_personality'),
-      story:         get('f_story'),
-      demoContent:   get('f_demoContent'),
-      salesScript:   get('f_salesScript'),
-    };
-    if (currentBrand !== 'nschool') data.portfolio = get('f_portfolio');
-    return data;
-  }
-
-  function getRequiredFields() {
-    if (currentBrand === 'xlab') {
-      return [
-        ['f_background','學員背景科系&職業'],
-        ['f_campSession','訓練營梯次'],
-        ['f_mode','實體/線上'],
-        ['f_material','教材名稱'],
-      ];
-    }
-    const fields = [
-      ['f_background','學員背景科系&職業'],
-      ['f_purchaseDomain','購買領域'],
-      ['f_expectation','加入學院的期待'],
-      ['f_personality','學員特質/個性'],
-      ['f_story','學員故事背景'],
-      ['f_salesScript','話術內容'],
-    ];
-    return fields;
-  }
-
-  async function submitNote() {
-    const errEl     = document.getElementById('submitError');
-    const successEl = document.getElementById('submitSuccess');
-    errEl.classList.remove('show'); successEl.classList.remove('show');
-
-    const staffName = document.getElementById('staffName').value.trim();
-    if (!foundMemberId) return showError(errEl, '請先搜尋學員');
-    if (!staffName)     return showError(errEl, '請填寫記錄人員');
-
-    for (const [id, label] of getRequiredFields()) {
-      const el = document.getElementById(id);
-      if (!el || !el.value.trim()) return showError(errEl, `請填寫「${label}」`);
-    }
-
-    const formData = getFormData();
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.textContent = '同步中...';
-
-    try {
-      const res  = await fetch('/api/note', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brandKey: currentBrand, memberId: foundMemberId, staffName, formData }),
-      });
-      const json = await res.json();
-      if (!json.success) return showError(errEl, json.message);
-
-      showSuccessModal(formData, staffName);
-    } catch (e) {
-      showError(errEl, '連線失敗，請稍後再試');
-    } finally {
-      btn.disabled = false; btn.textContent = '送出並同步 CRM';
-    }
-  }
-
-  // ── Modal ──────────────────────────────────────────
-  function row(label, value) {
-    if (!value) return '';
-    return `<div class="modal-row">
-      <span class="modal-row-label">${label}</span>
-      <span class="modal-row-value">${value}</span>
-    </div>`;
-  }
-
-  function showSuccessModal(formData, staffName) {
-    const memberEmail = document.getElementById('memberEmail').textContent;
-    document.getElementById('modalSubtitle').textContent =
-      `${BRAND_NAMES[currentBrand]} · ${memberEmail}`;
-
-    let html = '';
-
-    if (currentBrand === 'xlab') {
-      html +=
-        `<div class="modal-section-label">📌 學員基本資料</div>` +
-        row('學員姓名', formData.memberName) +
-        row('學員背景科系&職業', formData.background) +
-        row('訓練營梯次', formData.campSession) +
-        row('實體/線上', formData.mode) +
-        row('教材名稱', formData.material) +
-        `<div class="modal-divider"></div>` +
-        `<div class="modal-section-label">📞 Demo 過程紀錄</div>` +
-        row('Demo 中聊到的內容', formData.demoContent || '（未填）');
-    } else {
-      html +=
-        `<div class="modal-section-label">📌 學員基本資料</div>` +
-        row('學員姓名', formData.memberName) +
-        row('學員背景科系&職業', formData.background) +
-        row('購買領域', formData.purchaseDomain) +
-        `<div class="modal-divider"></div>` +
-        `<div class="modal-section-label">🎯 學習目標與動機</div>` +
-        row('加入學院的期待', formData.expectation) +
-        row('學員特質/個性', formData.personality) +
-        row('學員故事背景', formData.story) +
-        `<div class="modal-divider"></div>` +
-        `<div class="modal-section-label">📞 Demo 過程紀錄</div>` +
-        row('Demo 中聊到的內容', formData.demoContent || '（未填）');
-      if (currentBrand !== 'nschool') html += row('作品集', formData.portfolio || '（未填）');
-      html += row('話術內容', formData.salesScript);
-    }
-
-    html += `<div class="modal-divider"></div>` + row('記錄人員', staffName);
-
-    document.getElementById('modalBody').innerHTML = html;
-    document.getElementById('successModal').classList.add('show');
-  }
-
-  function closeModalAndReset() {
-    document.getElementById('successModal').classList.remove('show');
-    resetForm();
-  }
-
-  // ── Utils ──────────────────────────────────────────
-  function showError(el, msg) {
-    el.textContent = msg;
-    el.classList.add('show');
-  }
-
-  function resetForm() {
-    document.getElementById('emailInput').value = '';
-    document.getElementById('staffName').value = '';
-    document.getElementById('memberResult').classList.remove('show');
-    document.getElementById('formSection').classList.remove('show');
-    document.getElementById('searchError').classList.remove('show');
-    foundMemberId = null; foundMemberName = null;
-    renderForm(currentBrand);
-  }
-
-  function resetAll() {
-    document.getElementById('emailInput').value = '';
-    document.getElementById('staffName').value = '';
-    document.getElementById('memberResult').classList.remove('show');
-    document.getElementById('formSection').classList.remove('show');
-    document.getElementById('searchError').classList.remove('show');
-    document.getElementById('submitError').classList.remove('show');
-    document.getElementById('submitSuccess').classList.remove('show');
-    foundMemberId = null; foundMemberName = null;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    checkLogin();
-    document.getElementById('emailInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') searchMember();
+    document.getElementById('opsEmail').addEventListener('keydown', e => {
+      if (e.key === 'Enter') loginOps();
     });
   });
+
+  function getOpsSession() {
+    try {
+      const s = localStorage.getItem('opsSession');
+      if (!s) return null;
+      const obj = JSON.parse(s);
+      if (Date.now() - obj.loginAt > 30 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem('opsSession'); return null;
+      }
+      return obj;
+    } catch { return null; }
+  }
+
+  function loginBrand() {
+    const val = document.getElementById('brandSelect').value;
+    const err = document.getElementById('brandError');
+    err.classList.remove('show');
+    if (!val) { err.textContent = '請選擇品牌'; err.classList.add('show'); return; }
+    sessionStorage.setItem('brandKey', val);
+    location.href = '/note';
+  }
+
+  async function loginOps() {
+    const email = document.getElementById('opsEmail').value.trim();
+    const err   = document.getElementById('opsError');
+    err.classList.remove('show');
+    if (!email) { err.textContent = '請輸入 Email'; err.classList.add('show'); return; }
+
+    try {
+      const res  = await fetch('/api/auth/ops-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (!json.success) { err.textContent = json.message || '帳號不正確'; err.classList.add('show'); return; }
+
+      localStorage.setItem('opsSession', JSON.stringify({
+        role: 'ops', email: json.email, loginAt: Date.now(),
+      }));
+      location.href = '/apply';
+    } catch {
+      err.textContent = '連線失敗，請稍後再試';
+      err.classList.add('show');
+    }
+  }
 </script>
 </body>
 </html>

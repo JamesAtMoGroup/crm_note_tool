@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>審核 Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ops.css">
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-brand">OPS</span>
+  <a href="/apply">特殊申請</a>
+  <a href="/admin/review">審核</a>
+  <a href="/admin/categories/list">分類目錄</a>
+  <a href="/admin/categories/edit">分類編輯</a>
+  <a href="/admin/analytics">統計</a>
+  <div class="nav-right"><button class="nav-logout" onclick="opsLogout()">登出</button></div>
+</nav>
+
+<div class="main">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between">
+    <div><div class="page-title">審核 Dashboard</div></div>
+    <button class="btn btn-outline btn-sm" onclick="exportCsv()">匯出 CSV</button>
+  </div>
+
+  <!-- 篩選器 -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="filter-bar">
+      <div class="field"><label>狀態</label>
+        <select id="filterStatus">
+          <option value="all">全部</option>
+          <option value="pending">待審核</option>
+          <option value="approved">已核准</option>
+          <option value="rejected">已拒絕</option>
+        </select>
+      </div>
+      <div class="field"><label>品牌</label>
+        <select id="filterBrand">
+          <option value="">全部</option>
+          <option value="xuemi">學米</option>
+          <option value="sixdigital">無限</option>
+          <option value="kkschool">nschool職能</option>
+          <option value="nschool">nschool財經</option>
+          <option value="xlab">xlab</option>
+        </select>
+      </div>
+      <div class="field"><label>起日</label><input type="date" id="filterStart"/></div>
+      <div class="field"><label>迄日</label><input type="date" id="filterEnd"/></div>
+      <button class="btn btn-dark btn-sm" onclick="loadApplications()">套用</button>
+      <button class="btn btn-outline btn-sm" onclick="resetFilter()">重置</button>
+    </div>
+  </div>
+
+  <div id="listArea"><div class="empty">載入中...</div></div>
+</div>
+
+<!-- 核准 Modal -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal">
+    <div class="modal-title">核准申請</div>
+    <div id="approveBody"></div>
+    <div id="deductInput" style="display:none" class="field">
+      <label>扣%值<span class="req">*</span>（此項為個案評估，請填入實際扣%）</label>
+      <input type="number" id="approveDeduct" min="0" max="100" step="0.5" placeholder="0"/>
+    </div>
+    <div class="modal-divider"></div>
+    <label class="checkbox-field" style="margin-bottom:10px">
+      <input type="checkbox" id="sendEmailCheck" onchange="toggleEmailArea()"/> 寄信通知學員
+    </label>
+    <div id="emailArea" style="display:none">
+      <div class="field">
+        <label>信件主旨</label>
+        <input type="text" id="emailSubject" value="您的特殊申請已核准"/>
+      </div>
+      <div class="field">
+        <label>信件內容</label>
+        <textarea id="emailContent" style="min-height:120px"></textarea>
+      </div>
+    </div>
+    <div class="alert" id="approveAlert"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeApprove()">取消</button>
+      <button class="btn btn-primary" id="approveConfirmBtn" onclick="confirmApprove()">確認核准</button>
+    </div>
+  </div>
+</div>
+
+<!-- 拒絕 Modal -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal">
+    <div class="modal-title">拒絕申請</div>
+    <div id="rejectBody"></div>
+    <div class="field" style="margin-top:16px">
+      <label>拒絕原因<span class="req">*</span></label>
+      <textarea id="rejectReason" placeholder="請說明拒絕原因"></textarea>
+    </div>
+    <div class="alert" id="rejectAlert"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeReject()">取消</button>
+      <button class="btn btn-danger" id="rejectConfirmBtn" onclick="confirmReject()">確認拒絕</button>
+    </div>
+  </div>
+</div>
+
+<script src="/ops.js"></script>
+<script>
+  let currentAppId = null, currentApp = null, allData = [];
+
+  window.addEventListener('DOMContentLoaded', () => {
+    initOpsPage('/admin/review');
+    // 預設當月
+    const now  = new Date();
+    const y    = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('filterStart').value = `${y}-${m}-01`;
+    document.getElementById('filterEnd').value   = `${y}-${m}-${String(new Date(y,now.getMonth()+1,0).getDate()).padStart(2,'0')}`;
+    loadApplications();
+  });
+
+  function resetFilter() {
+    document.getElementById('filterStatus').value = 'all';
+    document.getElementById('filterBrand').value  = '';
+    document.getElementById('filterStart').value  = '';
+    document.getElementById('filterEnd').value    = '';
+    loadApplications();
+  }
+
+  async function loadApplications() {
+    document.getElementById('listArea').innerHTML = '<div class="empty">載入中...</div>';
+    const status = document.getElementById('filterStatus').value;
+    const brand  = document.getElementById('filterBrand').value;
+    const start  = document.getElementById('filterStart').value;
+    const end    = document.getElementById('filterEnd').value;
+    const params = new URLSearchParams({ status });
+    if (brand) params.append('brand', brand);
+    if (start) params.append('startDate', start);
+    if (end)   params.append('endDate', end);
+    try {
+      const r = await opsGet(`/api/application/list?${params}`);
+      allData  = r.data || [];
+      renderList();
+    } catch { document.getElementById('listArea').innerHTML = '<div class="empty">載入失敗，請重試</div>'; }
+  }
+
+  function renderList() {
+    const pending  = allData.filter(a => a.status === 'pending');
+    const history  = allData.filter(a => a.status !== 'pending');
+    let html = '';
+
+    html += `<div class="section-heading">⏳ 待審核 <span class="section-count">${pending.length} 筆</span></div>`;
+    if (pending.length === 0) { html += '<div class="empty">目前無待審核申請</div>'; }
+    else pending.forEach(a => { html += appCardHtml(a, true); });
+
+    html += `<div class="section-heading">📋 歷史紀錄 <span class="section-count">${history.length} 筆</span></div>`;
+    if (history.length === 0) { html += '<div class="empty">無歷史記錄</div>'; }
+    else history.forEach(a => { html += appCardHtml(a, false); });
+
+    document.getElementById('listArea').innerHTML = html;
+  }
+
+  function appCardHtml(a, showActions) {
+    return `<div class="app-card">
+      <div class="app-card-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="app-id">${a.applicationId}</span>${statusBadge(a.status)}
+          </div>
+          <div class="app-meta">${BRAND_DISPLAY[a.brandKey]||a.brandDisplay} · 申請人：${a.applicantName} · ${fmtDate(a.createdAt)}</div>
+          <div class="app-item">${a.itemName}</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);text-align:right;flex-shrink:0">
+          ${a.deductType === '固定' ? `扣${a.deductValue??0}%` : a.deductType || ''}
+        </div>
+      </div>
+      <div class="app-body">
+        <div class="app-body-row"><span class="app-body-label">學員</span><span>${a.memberName}（${a.memberEmail}）</span></div>
+        <div class="app-body-row"><span class="app-body-label">目的</span><span>${a.purpose}</span></div>
+        <div class="app-body-row"><span class="app-body-label">需求</span><span>${a.requirement}</span></div>
+        ${a.note ? `<div class="app-body-row"><span class="app-body-label">備註</span><span>${a.note}</span></div>` : ''}
+        ${a.rejectReason ? `<div class="app-body-row"><span class="app-body-label" style="color:var(--error)">拒絕原因</span><span>${a.rejectReason}</span></div>` : ''}
+        ${a.reviewedAt ? `<div class="app-body-row"><span class="app-body-label">審核時間</span><span>${fmtDate(a.reviewedAt)}</span></div>` : ''}
+      </div>
+      ${showActions ? `<div class="app-actions"><button class="btn btn-primary btn-sm" onclick="openApprove('${a.applicationId}')">核准</button><button class="btn btn-danger btn-sm" onclick="openReject('${a.applicationId}')">拒絕</button></div>` : ''}
+    </div>`;
+  }
+
+  function openApprove(id) {
+    currentAppId = id;
+    currentApp   = allData.find(a => a.applicationId === id);
+    const needDeduct = currentApp.deductType === '個案評估' || currentApp.categoryId === 'CUSTOM';
+    document.getElementById('approveBody').innerHTML = `
+      <div class="modal-row"><span class="modal-row-label">申請單</span><span class="modal-row-value">${id}</span></div>
+      <div class="modal-row"><span class="modal-row-label">學員</span><span class="modal-row-value">${currentApp.memberName}</span></div>
+      <div class="modal-row"><span class="modal-row-label">項目</span><span class="modal-row-value">${currentApp.itemName}</span></div>
+      ${deductBadgeHtml(currentApp.deductType, currentApp.deductValue)}
+    `;
+    document.getElementById('deductInput').style.display = needDeduct ? '' : 'none';
+    document.getElementById('approveDeduct').value = '';
+    document.getElementById('sendEmailCheck').checked = false;
+    document.getElementById('emailArea').style.display = 'none';
+    document.getElementById('emailSubject').value = '您的特殊申請已核准';
+    document.getElementById('emailContent').value = currentApp.emailTemplate || `Hi ${currentApp.memberName}，\n\n您的特殊申請已核准：${currentApp.itemName}。\n\n如有任何問題歡迎聯繫業務同仁。`;
+    document.getElementById('approveAlert').classList.remove('show');
+    document.getElementById('approveModal').classList.add('show');
+  }
+
+  function closeApprove() { document.getElementById('approveModal').classList.remove('show'); }
+
+  function toggleEmailArea() {
+    document.getElementById('emailArea').style.display = document.getElementById('sendEmailCheck').checked ? '' : 'none';
+  }
+
+  async function confirmApprove() {
+    const needDeduct = currentApp.deductType === '個案評估' || currentApp.categoryId === 'CUSTOM';
+    const deduct     = document.getElementById('approveDeduct').value;
+    const sendEmail  = document.getElementById('sendEmailCheck').checked;
+    const alert      = document.getElementById('approveAlert');
+    alert.classList.remove('show');
+    if (needDeduct && deduct === '') return showAlert(alert, '請填入扣%值（可填 0）');
+    if (sendEmail && !document.getElementById('emailContent').value.trim()) return showAlert(alert, '請填寫信件內容');
+
+    const btn = document.getElementById('approveConfirmBtn');
+    btn.disabled = true; btn.textContent = '處理中...';
+    try {
+      const r = await opsPost('/api/application/review', {
+        applicationId: currentAppId,
+        decision:      'approved',
+        deductPercent: needDeduct ? parseFloat(deduct) : null,
+        sendEmail,
+        emailSubject:  sendEmail ? document.getElementById('emailSubject').value : null,
+        emailContent:  sendEmail ? document.getElementById('emailContent').value  : null,
+      });
+      if (r.emailError) alert && showAlert(document.getElementById('approveAlert'), `核准成功，但寄信失敗：${r.emailError}`, 'warn');
+      closeApprove();
+      loadApplications();
+    } catch { showAlert(alert, '操作失敗，請重試'); }
+    finally { btn.disabled = false; btn.textContent = '確認核准'; }
+  }
+
+  function openReject(id) {
+    currentAppId = id;
+    currentApp   = allData.find(a => a.applicationId === id);
+    document.getElementById('rejectBody').innerHTML = `
+      <div class="modal-row"><span class="modal-row-label">申請單</span><span class="modal-row-value">${id}</span></div>
+      <div class="modal-row"><span class="modal-row-label">項目</span><span class="modal-row-value">${currentApp.itemName}</span></div>
+    `;
+    document.getElementById('rejectReason').value = '';
+    document.getElementById('rejectAlert').classList.remove('show');
+    document.getElementById('rejectModal').classList.add('show');
+  }
+
+  function closeReject() { document.getElementById('rejectModal').classList.remove('show'); }
+
+  async function confirmReject() {
+    const reason = document.getElementById('rejectReason').value.trim();
+    const alert  = document.getElementById('rejectAlert');
+    if (!reason) return showAlert(alert, '請填寫拒絕原因');
+    const btn = document.getElementById('rejectConfirmBtn');
+    btn.disabled = true; btn.textContent = '處理中...';
+    try {
+      await opsPost('/api/application/review', { applicationId: currentAppId, decision: 'rejected', rejectReason: reason });
+      closeReject();
+      loadApplications();
+    } catch { showAlert(alert, '操作失敗，請重試'); }
+    finally { btn.disabled = false; btn.textContent = '確認拒絕'; }
+  }
+
+  function exportCsv() {
+    const status = document.getElementById('filterStatus').value;
+    const brand  = document.getElementById('filterBrand').value;
+    const start  = document.getElementById('filterStart').value;
+    const end    = document.getElementById('filterEnd').value;
+    const params = new URLSearchParams({ status });
+    if (brand) params.append('brand', brand);
+    if (start) params.append('startDate', start);
+    if (end)   params.append('endDate', end);
+    // Build headers manually for download
+    const a = document.createElement('a');
+    a.href = `/api/application/export?${params}`;
+    a.download = '';
+    a.click();
+  }
+</script>
+</body>
+</html>

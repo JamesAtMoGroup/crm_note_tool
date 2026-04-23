@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>特殊申請</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ops.css">
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-brand">OPS</span>
+  <a href="/apply">特殊申請</a>
+  <a href="/admin/review">審核</a>
+  <a href="/admin/categories/list">分類目錄</a>
+  <a href="/admin/categories/edit">分類編輯</a>
+  <a href="/admin/analytics">統計</a>
+  <div class="nav-right"><button class="nav-logout" onclick="opsLogout()">登出</button></div>
+</nav>
+
+<div class="main-narrow">
+  <div class="page-header">
+    <div class="page-title">特殊申請</div>
+  </div>
+
+  <!-- Step 1: 選品牌 -->
+  <div class="card" id="step1Card">
+    <div class="card-title">01 · 選擇品牌</div>
+    <div class="field">
+      <label>品牌<span class="req">*</span></label>
+      <select id="brandSelect" onchange="onBrandChange()">
+        <option value="">請選擇</option>
+        <option value="xuemi">學米</option>
+        <option value="sixdigital">無限</option>
+        <option value="kkschool">nschool職能</option>
+        <option value="nschool">nschool財經</option>
+        <option value="xlab">xlab</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Step 2: 搜尋學員 -->
+  <div class="card" id="step2Card" style="display:none">
+    <div class="card-title">02 · 搜尋學員</div>
+    <div class="field">
+      <label>學員信箱<span class="req">*</span></label>
+      <div class="search-row">
+        <input type="email" id="emailInput" placeholder="student@example.com"/>
+        <button class="btn btn-dark" id="searchBtn" onclick="searchMember()">搜尋</button>
+      </div>
+    </div>
+    <div class="member-result" id="memberResult">
+      <div class="member-avatar" id="memberAvatar"></div>
+      <div><div class="member-name" id="memberNameDisplay"></div><div class="member-email" id="memberEmailDisplay"></div></div>
+    </div>
+    <div class="alert" id="searchAlert"></div>
+  </div>
+
+  <!-- Step 3–7: 填寫申請 -->
+  <div id="formSection" style="display:none">
+    <div class="card">
+      <div class="card-title">03 · 填寫申請內容</div>
+
+      <div class="field">
+        <label>申請人姓名<span class="req">*</span></label>
+        <input type="text" id="applicantName" placeholder="ops 同仁的名字"/>
+      </div>
+
+      <div class="field">
+        <label>分類項目<span class="req">*</span></label>
+        <select id="categorySelect" onchange="onCategoryChange()">
+          <option value="">載入中...</option>
+        </select>
+        <div id="deductBadge" style="margin-top:8px"></div>
+      </div>
+
+      <div id="customItemField" class="field" style="display:none">
+        <label>自訂項目名稱<span class="req">*</span></label>
+        <input type="text" id="customItemName" placeholder="請描述申請項目"/>
+      </div>
+
+      <div class="field">
+        <label>目的<span class="req">*</span></label>
+        <textarea id="purpose" placeholder="申請的目的"></textarea>
+      </div>
+      <div class="field">
+        <label>需求<span class="req">*</span></label>
+        <textarea id="requirement" placeholder="具體的需求說明"></textarea>
+      </div>
+      <div class="field">
+        <label>備註</label>
+        <textarea id="noteInput" placeholder="補充說明（選填）"></textarea>
+      </div>
+
+      <div class="alert" id="formAlert"></div>
+      <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="openConfirm()">檢視並送出</button>
+    </div>
+  </div>
+</div>
+
+<!-- 確認 Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-title">請確認申請內容</div>
+    <div id="confirmBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeConfirm()">返回修改</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="submitApplication()">確認送出</button>
+    </div>
+  </div>
+</div>
+
+<!-- 成功 Modal -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div style="text-align:center;padding:12px 0 24px">
+      <div style="font-size:36px;margin-bottom:12px">✅</div>
+      <div class="modal-title">申請已送出</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:6px">申請單號：<span id="successId" style="font-family:'DM Mono',monospace;font-weight:600;color:var(--text)"></span></div>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn btn-outline" onclick="location.href='/admin/review'">前往審核 Dashboard</button>
+      <button class="btn btn-primary" onclick="resetForm()">再送一筆</button>
+    </div>
+  </div>
+</div>
+
+<script src="/ops.js"></script>
+<script>
+  let foundMemberId = null, foundMemberName = null, foundMemberEmail = null;
+  let categories = [];
+  let selectedCategory = null;
+
+  window.addEventListener('DOMContentLoaded', () => initOpsPage('/apply'));
+
+  function onBrandChange() {
+    const brand = document.getElementById('brandSelect').value;
+    document.getElementById('step2Card').style.display = brand ? '' : 'none';
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('memberResult').classList.remove('show');
+    document.getElementById('searchAlert').classList.remove('show');
+    foundMemberId = null; foundMemberName = null; foundMemberEmail = null;
+    if (brand) loadCategories(brand);
+  }
+
+  async function loadCategories(brand) {
+    try {
+      const r = await opsGet(`/api/categories/list?brand=${brand}`);
+      categories = r.data || [];
+      const sel = document.getElementById('categorySelect');
+      sel.innerHTML = '<option value="">請選擇分類</option>' +
+        categories.map(c => `<option value="${c.id}">${c.itemName}（${c.deductType}${c.deductType==='固定'?' '+c.deductValue+'%':''}）</option>`).join('') +
+        '<option value="CUSTOM">非既有需求（自填）</option>';
+      selectedCategory = null;
+      document.getElementById('deductBadge').innerHTML = '';
+      document.getElementById('customItemField').style.display = 'none';
+    } catch { /* fail silently, categories will be empty */ }
+  }
+
+  function onCategoryChange() {
+    const val = document.getElementById('categorySelect').value;
+    document.getElementById('customItemField').style.display = val === 'CUSTOM' ? '' : 'none';
+    if (val === 'CUSTOM') {
+      selectedCategory = { id: 'CUSTOM', deductType: '個案評估', deductValue: null, emailTemplate: null };
+    } else {
+      selectedCategory = categories.find(c => c.id === val) || null;
+    }
+    document.getElementById('deductBadge').innerHTML = selectedCategory
+      ? deductBadgeHtml(selectedCategory.deductType, selectedCategory.deductValue) : '';
+  }
+
+  async function searchMember() {
+    const email = document.getElementById('emailInput').value.trim();
+    const alert = document.getElementById('searchAlert');
+    alert.classList.remove('show');
+    document.getElementById('memberResult').classList.remove('show');
+    document.getElementById('formSection').style.display = 'none';
+    foundMemberId = null;
+    if (!email) return showAlert(alert, '請輸入學員信箱');
+
+    const btn = document.getElementById('searchBtn');
+    btn.disabled = true; btn.textContent = '搜尋中...';
+    try {
+      const brand = document.getElementById('brandSelect').value;
+      const r = await opsPost('/api/member/search', { email, brandKey: brand });
+      if (!r.success) return showAlert(alert, `在 ${BRAND_DISPLAY[brand]} 找不到此學員，是不是選錯品牌了？`);
+      const m = r.data;
+      foundMemberId = m.id; foundMemberName = m.name; foundMemberEmail = m.email;
+      document.getElementById('memberAvatar').textContent = m.name?.[0] || '?';
+      document.getElementById('memberNameDisplay').textContent = m.name;
+      document.getElementById('memberEmailDisplay').textContent = m.email;
+      document.getElementById('memberResult').classList.add('show');
+      document.getElementById('formSection').style.display = '';
+    } catch { showAlert(alert, '連線失敗，請稍後再試'); }
+    finally { btn.disabled = false; btn.textContent = '搜尋'; }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.activeElement.id === 'emailInput') searchMember();
+  });
+
+  function openConfirm() {
+    const brand     = document.getElementById('brandSelect').value;
+    const applicant = document.getElementById('applicantName').value.trim();
+    const catVal    = document.getElementById('categorySelect').value;
+    const custom    = document.getElementById('customItemName').value.trim();
+    const purpose   = document.getElementById('purpose').value.trim();
+    const req       = document.getElementById('requirement').value.trim();
+    const alert     = document.getElementById('formAlert');
+    alert.classList.remove('show');
+
+    if (!applicant)  return showAlert(alert, '請填寫申請人姓名');
+    if (!catVal)     return showAlert(alert, '請選擇分類項目');
+    if (catVal === 'CUSTOM' && !custom) return showAlert(alert, '請填寫自訂項目名稱');
+    if (!purpose)    return showAlert(alert, '請填寫目的');
+    if (!req)        return showAlert(alert, '請填寫需求');
+
+    const itemName = catVal === 'CUSTOM' ? custom : (selectedCategory?.itemName || '');
+    const note     = document.getElementById('noteInput').value.trim();
+
+    let html = `
+      <div class="modal-row"><span class="modal-row-label">品牌</span><span class="modal-row-value">${BRAND_DISPLAY[brand]}</span></div>
+      <div class="modal-row"><span class="modal-row-label">申請人</span><span class="modal-row-value">${applicant}</span></div>
+      <div class="modal-row"><span class="modal-row-label">學員</span><span class="modal-row-value">${foundMemberName}（${foundMemberEmail}）</span></div>
+      <div class="modal-divider"></div>
+      <div class="modal-row"><span class="modal-row-label">申請項目</span><span class="modal-row-value">${itemName}</span></div>
+      ${deductBadgeHtml(selectedCategory?.deductType, selectedCategory?.deductValue)}
+      <div class="modal-divider"></div>
+      <div class="modal-row"><span class="modal-row-label">目的</span><span class="modal-row-value">${purpose}</span></div>
+      <div class="modal-row"><span class="modal-row-label">需求</span><span class="modal-row-value">${req}</span></div>
+      ${note ? `<div class="modal-row"><span class="modal-row-label">備註</span><span class="modal-row-value">${note}</span></div>` : ''}
+    `;
+    document.getElementById('confirmBody').innerHTML = html;
+    document.getElementById('confirmModal').classList.add('show');
+  }
+
+  function closeConfirm() { document.getElementById('confirmModal').classList.remove('show'); }
+
+  async function submitApplication() {
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true; btn.textContent = '送出中...';
+    try {
+      const brand   = document.getElementById('brandSelect').value;
+      const catVal  = document.getElementById('categorySelect').value;
+      const custom  = document.getElementById('customItemName').value.trim();
+      const r = await opsPost('/api/application/create', {
+        brandKey:      brand,
+        applicantName: document.getElementById('applicantName').value.trim(),
+        memberEmail:   foundMemberEmail,
+        memberId:      foundMemberId,
+        memberName:    foundMemberName,
+        categoryId:    catVal,
+        customItemName: custom,
+        itemName:      catVal === 'CUSTOM' ? custom : selectedCategory?.itemName,
+        deductType:    selectedCategory?.deductType,
+        deductValue:   selectedCategory?.deductValue ?? null,
+        purpose:       document.getElementById('purpose').value.trim(),
+        requirement:   document.getElementById('requirement').value.trim(),
+        note:          document.getElementById('noteInput').value.trim(),
+      });
+      if (!r.success) { showAlert(document.getElementById('formAlert'), r.message); closeConfirm(); return; }
+      closeConfirm();
+      document.getElementById('successId').textContent = r.applicationId;
+      document.getElementById('successModal').classList.add('show');
+    } catch { showAlert(document.getElementById('formAlert'), '連線失敗'); closeConfirm(); }
+    finally { btn.disabled = false; btn.textContent = '確認送出'; }
+  }
+
+  function resetForm() {
+    document.getElementById('successModal').classList.remove('show');
+    document.getElementById('brandSelect').value = '';
+    document.getElementById('step2Card').style.display = 'none';
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('emailInput').value = '';
+    document.getElementById('applicantName').value = '';
+    document.getElementById('purpose').value = '';
+    document.getElementById('requirement').value = '';
+    document.getElementById('noteInput').value = '';
+    document.getElementById('memberResult').classList.remove('show');
+    foundMemberId = null; foundMemberName = null; foundMemberEmail = null;
+  }
+</script>
+</body>
+</html>
