@@ -3,6 +3,45 @@ const router     = express.Router();
 const { callAppsScript } = require('../services/appsScript');
 const { requireOps }     = require('../middleware/opsAuth');
 const { BRAND_DISPLAY_NAMES } = require('../constants/brands');
+const { executeGraphQL } = require('../graphql');
+const { getBrandConfig } = require('../auth');
+
+const INSERT_NOTE = `
+  mutation InsertNote(
+    $createdAt: timestamptz
+    $description: String
+    $memberId: String
+    $authorId: String
+  ) {
+    insert_member_note(objects: {
+      created_at: $createdAt
+      description: $description
+      member_id: $memberId
+      author_id: $authorId
+      status: ""
+    }) {
+      returning { id }
+    }
+  }
+`;
+
+async function writeCrmNote(brandKey, memberId, description) {
+  const brand = getBrandConfig(brandKey);
+  if (!brand || !memberId) return;
+  await executeGraphQL(INSERT_NOTE, {
+    createdAt:   new Date().toISOString(),
+    description,
+    memberId,
+    authorId:    brand.authorId,
+  }, brandKey);
+}
+
+function fmtDeduct(deductType, deductValue) {
+  if (deductType === '固定')    return `扣 ${deductValue ?? 0}%`;
+  if (deductType === '不扣')    return '不扣';
+  if (deductType === '個案評估') return '個案評估';
+  return deductType || '';
+}
 
 // POST /api/application/create
 router.post('/create', requireOps, async (req, res) => {
@@ -21,6 +60,13 @@ router.post('/create', requireOps, async (req, res) => {
       deductType, deductValue: deductValue ?? null,
       purpose, requirement, note: note || '',
     });
+
+    // CRM note（送出時）
+    if (r.success && memberId) {
+      const desc = `📋 特殊申請送出\n申請人：${applicantName}\n項目：${finalItem}\n類型：${fmtDeduct(deductType, deductValue)}\n目的：${purpose}\n需求：${requirement}\n申請單號：${r.applicationId}`;
+      writeCrmNote(brandKey, memberId, desc).catch(e => console.error('[CRM note create]', e.message));
+    }
+
     res.json(r);
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -40,9 +86,25 @@ router.get('/list', requireOps, async (req, res) => {
 });
 
 // POST /api/application/review
+// Extra fields for CRM note (not forwarded to Apps Script): memberId, brandKey, itemName
 router.post('/review', requireOps, async (req, res) => {
   try {
-    const r = await callAppsScript('update_application_status', req.body);
+    const { memberId, brandKey, itemName, decision, deductPercent, rejectReason, ...scriptPayload } = req.body;
+
+    const r = await callAppsScript('update_application_status', { decision, deductPercent, rejectReason, ...scriptPayload });
+
+    // CRM note（審核時）
+    if (r.success && memberId && brandKey) {
+      let desc;
+      if (decision === 'approved') {
+        const deductStr = deductPercent != null ? `扣 ${deductPercent}%` : fmtDeduct(scriptPayload.currentDeductType, deductPercent);
+        desc = `✅ 特殊申請核准\n項目：${itemName || ''}\n${deductPercent != null ? `扣%：${deductPercent}%` : ''}\n申請單號：${scriptPayload.applicationId}`.trim();
+      } else {
+        desc = `❌ 特殊申請拒絕\n項目：${itemName || ''}\n原因：${rejectReason || ''}\n申請單號：${scriptPayload.applicationId}`;
+      }
+      writeCrmNote(brandKey, memberId, desc).catch(e => console.error('[CRM note review]', e.message));
+    }
+
     res.json(r);
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });

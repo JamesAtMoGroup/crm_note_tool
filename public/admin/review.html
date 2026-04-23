@@ -229,6 +229,9 @@
         sendEmail,
         emailSubject:  sendEmail ? document.getElementById('emailSubject').value : null,
         emailContent:  sendEmail ? document.getElementById('emailContent').value  : null,
+        memberId:      currentApp.memberId,
+        brandKey:      currentApp.brandKey,
+        itemName:      currentApp.itemName,
       });
       if (r.emailError) alert && showAlert(document.getElementById('approveAlert'), `核准成功，但寄信失敗：${r.emailError}`, 'warn');
       closeApprove();
@@ -258,7 +261,14 @@
     const btn = document.getElementById('rejectConfirmBtn');
     btn.disabled = true; btn.textContent = '處理中...';
     try {
-      await opsPost('/api/application/review', { applicationId: currentAppId, decision: 'rejected', rejectReason: reason });
+      await opsPost('/api/application/review', {
+        applicationId: currentAppId,
+        decision:      'rejected',
+        rejectReason:  reason,
+        memberId:      currentApp.memberId,
+        brandKey:      currentApp.brandKey,
+        itemName:      currentApp.itemName,
+      });
       closeReject();
       loadApplications();
     } catch { showAlert(alert, '操作失敗，請重試'); }
