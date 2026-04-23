@@ -32,9 +32,14 @@
     .btn-logout:hover { border-color: var(--text-muted); color: var(--text); }
 
     /* Tabs */
-    .tabs { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; gap: 0; }
-    .tab-btn { padding: 14px 20px; font-size: 16px; font-weight: 600; cursor: pointer; background: transparent; border: none; border-bottom: 3px solid transparent; color: var(--text-muted); transition: all .15s; letter-spacing: -0.01em; }
-    .tab-btn.active { border-bottom-color: var(--text); color: var(--text); }
+    .tabs { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; gap: 0; position: relative; }
+    .tab-btn { padding: 16px 24px; font-size: 18px; font-weight: 700; cursor: pointer; background: transparent; border: none; border-bottom: 3px solid transparent; color: var(--text-muted); transition: color .2s; letter-spacing: -0.02em; position: relative; }
+    .tab-btn.active { color: var(--text); }
+    .tab-indicator { position: absolute; bottom: -1px; height: 3px; background: var(--text); border-radius: 2px 2px 0 0; transition: left .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1); }
+
+    /* Tab content fade */
+    .tab-panel { animation: tabFadeIn .2s ease; }
+    @keyframes tabFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Main */
     .main { max-width: 680px; margin: 0 auto; padding: 28px 20px 80px; }
@@ -142,9 +147,10 @@
 </div>
 
 <!-- Tabs -->
-<div class="tabs">
+<div class="tabs" id="tabsBar">
   <button class="tab-btn active" id="tab-apply" onclick="switchTab('apply')">特殊申請</button>
   <button class="tab-btn" id="tab-note" onclick="switchTab('note')">客服溝通紀錄</button>
+  <div class="tab-indicator" id="tabIndicator"></div>
 </div>
 
 <div class="main">
@@ -337,6 +343,8 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('a_emailInput').addEventListener('keydown', e => { if (e.key === 'Enter') applySearchMember(); });
   document.getElementById('n_emailInput').addEventListener('keydown', e => { if (e.key === 'Enter') noteSearchMember(); });
   updateJingbanButton();
+  // init sliding indicator after layout
+  requestAnimationFrame(() => moveIndicator('apply'));
 });
 
 function logout() {
@@ -344,11 +352,31 @@ function logout() {
   location.href = '/';
 }
 
+function moveIndicator(tabId) {
+  const btn = document.getElementById('tab-' + tabId);
+  const bar = document.getElementById('tabsBar');
+  const ind = document.getElementById('tabIndicator');
+  const barRect = bar.getBoundingClientRect();
+  const btnRect = btn.getBoundingClientRect();
+  ind.style.left  = (btnRect.left - barRect.left) + 'px';
+  ind.style.width = btnRect.width + 'px';
+}
+
 function switchTab(tab) {
   ['apply','note'].forEach(t => {
-    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
-    document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? '' : 'none';
+    const btn   = document.getElementById('tab-' + t);
+    const panel = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+    btn.classList.toggle('active', t === tab);
+    if (t === tab) {
+      panel.style.display = '';
+      panel.classList.remove('tab-panel');
+      void panel.offsetWidth; // reflow to restart animation
+      panel.classList.add('tab-panel');
+    } else {
+      panel.style.display = 'none';
+    }
   });
+  moveIndicator(tab);
 }
 
 // Brand auth headers (for consultant API calls)
