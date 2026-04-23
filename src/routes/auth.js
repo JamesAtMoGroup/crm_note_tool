@@ -1,6 +1,6 @@
 const express  = require('express');
 const router   = express.Router();
-const OPS_EMAIL = process.env.OPS_EMAIL || 'ops@qraft.app';
+const OPS_EMAIL = process.env.OPS_EMAIL || 'penny@mogroup.tw';
 
 // POST /api/auth/ops-login
 // body: { email }

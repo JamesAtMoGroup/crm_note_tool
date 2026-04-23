@@ -7,7 +7,7 @@ var SPREADSHEET_ID = '1d6jkWDiFNKvoRN-M2Y6GJxS-0aY0ejHpytfwJ72_CFE';
 var SHEET_LOG      = '特殊申請log';
 var SHEET_CATS     = '分類設定';
 var SHEET_AUDIT    = '分類異動log';
-var OPS_EMAIL      = 'ops@qraft.app';
+var OPS_EMAIL      = 'penny@mogroup.tw';
 
 // ── Entry point ────────────────────────────────
 function doPost(e) {

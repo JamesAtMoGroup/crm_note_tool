@@ -1,7 +1,7 @@
-const OPS_EMAIL = process.env.OPS_EMAIL || 'ops@qraft.app';
+const OPS_EMAIL = process.env.OPS_EMAIL || 'penny@mogroup.tw';
 
 // OPS 路由保護：前端在所有 /api/application/* 和 /api/categories/* 請求帶上
-// header: x-role: ops  +  x-ops-email: ops@qraft.app
+// header: x-role: ops  +  x-ops-email: penny@mogroup.tw
 function requireOps(req, res, next) {
   const role  = req.headers['x-role'];
   const email = req.headers['x-ops-email'];
