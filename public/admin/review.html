@@ -47,6 +47,7 @@
       </div>
       <div class="field"><label>起日</label><input type="date" id="filterStart"/></div>
       <div class="field"><label>迄日</label><input type="date" id="filterEnd"/></div>
+      <div class="field"><label>學員搜尋</label><input type="text" id="filterMember" placeholder="姓名或 Email" oninput="renderList()" style="min-width:160px"/></div>
       <button class="btn btn-dark btn-sm" onclick="loadApplications()">套用</button>
       <button class="btn btn-outline btn-sm" onclick="resetFilter()">重置</button>
     </div>
@@ -122,6 +123,7 @@
     document.getElementById('filterBrand').value  = '';
     document.getElementById('filterStart').value  = '';
     document.getElementById('filterEnd').value    = '';
+    document.getElementById('filterMember').value = '';
     loadApplications();
   }
 
@@ -143,8 +145,12 @@
   }
 
   function renderList() {
-    const pending  = allData.filter(a => a.status === 'pending');
-    const history  = allData.filter(a => a.status !== 'pending');
+    const kw = (document.getElementById('filterMember')?.value || '').trim().toLowerCase();
+    const filtered = kw
+      ? allData.filter(a => (a.memberName || '').toLowerCase().includes(kw) || (a.memberEmail || '').toLowerCase().includes(kw))
+      : allData;
+    const pending  = filtered.filter(a => a.status === 'pending');
+    const history  = filtered.filter(a => a.status !== 'pending');
     let html = '';
 
     html += `<div class="section-heading">⏳ 待審核 <span class="section-count">${pending.length} 筆</span></div>`;
