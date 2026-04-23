@@ -68,6 +68,7 @@ function deductBadgeHtml(deductType, deductValue) {
     return `<div class="deduct-badge deduct-red">⚠️ 此項將扣承攬業績 ${v}%</div>`;
   }
   if (deductType === '個案評估') return `<div class="deduct-badge deduct-yellow">⚠️ 此項為個案評估，最終扣%由審核時決定</div>`;
+  if (deductType === '不扣')    return `<div class="deduct-badge deduct-green">✅ 此項不扣業績</div>`;
   return `<div class="deduct-badge deduct-yellow">⚠️ 非既有需求，最終扣%由審核時決定</div>`;
 }
 
