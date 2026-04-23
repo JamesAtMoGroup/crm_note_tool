@@ -32,8 +32,8 @@
     .btn-logout:hover { border-color: var(--text-muted); color: var(--text); }
 
     /* Tabs */
-    .tabs { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; gap: 0; position: relative; }
-    .tab-btn { padding: 16px 24px; font-size: 18px; font-weight: 700; cursor: pointer; background: transparent; border: none; border-bottom: 3px solid transparent; color: var(--text-muted); transition: color .2s; letter-spacing: -0.02em; position: relative; }
+    .tabs { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: center; gap: 0; position: relative; }
+    .tab-btn { flex: 1; max-width: 260px; padding: 18px 24px; font-size: 22px; font-weight: 700; cursor: pointer; background: transparent; border: none; border-bottom: 3px solid transparent; color: var(--text-muted); transition: color .2s; letter-spacing: -0.02em; text-align: center; }
     .tab-btn.active { color: var(--text); }
     .tab-indicator { position: absolute; bottom: -1px; height: 3px; background: var(--text); border-radius: 2px 2px 0 0; transition: left .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1); }
 
