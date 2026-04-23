@@ -12,16 +12,21 @@
       --bg: #f4f3ef; --surface: #ffffff; --border: #dddbd5;
       --border-focus: #1a1a1a; --text: #1a1a1a; --text-muted: #888;
       --accent: #2d5a3d; --accent-light: #e8f0ea; --error: #c0392b;
+      --error-bg: #fdf0ef; --error-border: #f0c5c2;
       --radius: 6px;
     }
-    body {
-      font-family: 'Noto Sans TC', sans-serif;
-      background: var(--bg); color: var(--text);
-      min-height: 100vh; display: flex;
-      align-items: center; justify-content: center; padding: 24px 16px;
-    }
-    .wrap { width: 100%; max-width: 380px; }
-    .logo-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+    body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Top bar */
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar-title { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+    .btn-jingban { padding: 7px 14px; font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 500; background: var(--text); color: #fff; border: none; border-radius: var(--radius); cursor: pointer; transition: opacity .15s; }
+    .btn-jingban:hover { opacity: .85; }
+    .btn-jingban.logged-in { background: var(--accent); }
+
+    /* Center content */
+    .wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 52px); padding: 24px 16px; }
+    .inner { width: 100%; max-width: 380px; }
     h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 28px; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
     .field { margin-bottom: 16px; }
@@ -36,44 +41,147 @@
       background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer;
     }
     select:focus { border-color: var(--border-focus); background-color: #fff; }
-    .btn {
+    .btn-main {
       width: 100%; padding: 13px; margin-top: 4px;
       font-family: 'Noto Sans TC', sans-serif; font-size: 14px; font-weight: 500;
       background: var(--text); color: #fff;
       border: none; border-radius: var(--radius); cursor: pointer;
       transition: opacity .15s, transform .1s;
     }
-    .btn:active { transform: scale(0.98); }
-    .alert { display: none; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-top: 12px; background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error); }
+    .btn-main:active { transform: scale(0.98); }
+    .alert { display: none; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-top: 12px; background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error); }
     .alert.show { display: block; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 360px; padding: 28px; }
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+    .modal input[type=email] {
+      width: 100%; padding: 10px 14px; font-family: 'Noto Sans TC', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); outline: none; transition: border-color .15s;
+    }
+    .modal input[type=email]:focus { border-color: var(--border-focus); background: #fff; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .btn-outline { padding: 9px 16px; font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 500; background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); cursor: pointer; }
+    .btn-dark { padding: 9px 16px; font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 500; background: var(--text); color: #fff; border: none; border-radius: var(--radius); cursor: pointer; }
+    .btn-dark:disabled { opacity: .45; cursor: not-allowed; }
+
+    @media (max-width: 480px) {
+      .topbar { padding: 0 16px; }
+      .modal-footer { flex-direction: column-reverse; }
+      .modal-footer .btn-outline, .modal-footer .btn-dark { width: 100%; text-align: center; }
+    }
   </style>
 </head>
 <body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <span class="topbar-title">Internal Tool</span>
+  <button class="btn-jingban" id="jingbanBtn" onclick="handleJingbanClick()">經辦登入</button>
+</div>
+
+<!-- Brand login -->
 <div class="wrap">
-  <div class="logo-label">Internal Tool</div>
-  <h1>客服工具</h1>
-  <div class="card">
-    <div class="field">
-      <label>選擇品牌</label>
-      <select id="brandSelect">
-        <option value="">請選擇</option>
-        <option value="xuemi">學米</option>
-        <option value="sixdigital">無限</option>
-        <option value="kkschool">nschool職能</option>
-        <option value="nschool">nschool財經</option>
-        <option value="xlab">xlab</option>
-        <option value="aischool">AI未來學院</option>
-      </select>
+  <div class="inner">
+    <h1>客服工具</h1>
+    <div class="card">
+      <div class="field">
+        <label>選擇品牌</label>
+        <select id="brandSelect">
+          <option value="">請選擇</option>
+          <option value="xuemi">學米</option>
+          <option value="sixdigital">無限</option>
+          <option value="kkschool">nschool職能</option>
+          <option value="nschool">nschool財經</option>
+          <option value="xlab">xlab</option>
+          <option value="aischool">AI未來學院</option>
+        </select>
+      </div>
+      <button class="btn-main" onclick="login()">登入</button>
+      <div class="alert" id="err"></div>
     </div>
-    <button class="btn" onclick="login()">登入</button>
-    <div class="alert" id="err"></div>
   </div>
 </div>
+
+<!-- 經辦登入 Modal -->
+<div class="modal-overlay" id="jingbanModal">
+  <div class="modal">
+    <div class="modal-title">經辦登入</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="jingbanEmail" placeholder="輸入 Email" onkeydown="if(event.key==='Enter')loginJingban()"/>
+    </div>
+    <div class="alert" id="jingbanAlert"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeJingbanModal()">取消</button>
+      <button class="btn-dark" id="jingbanLoginBtn" onclick="loginJingban()">登入</button>
+    </div>
+  </div>
+</div>
+
 <script>
+  const BRAND_DISPLAY = { xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能', nschool:'nschool財經', xlab:'xlab', aischool:'AI未來學院' };
+
+  function getJingbanSession() {
+    try {
+      const s = localStorage.getItem('opsSession');
+      if (!s) return null;
+      const obj = JSON.parse(s);
+      if (Date.now() - obj.loginAt > 30 * 24 * 60 * 60 * 1000) { localStorage.removeItem('opsSession'); return null; }
+      return obj;
+    } catch { return null; }
+  }
+
+  function updateJingbanButton() {
+    const btn = document.getElementById('jingbanBtn');
+    if (getJingbanSession()) {
+      btn.textContent = '前往審核';
+      btn.classList.add('logged-in');
+    } else {
+      btn.textContent = '經辦登入';
+      btn.classList.remove('logged-in');
+    }
+  }
+
+  function handleJingbanClick() {
+    if (getJingbanSession()) { location.href = '/admin/review'; return; }
+    openJingbanModal();
+  }
+
+  function openJingbanModal() {
+    document.getElementById('jingbanEmail').value = '';
+    document.getElementById('jingbanAlert').classList.remove('show');
+    document.getElementById('jingbanModal').classList.add('show');
+    setTimeout(() => document.getElementById('jingbanEmail').focus(), 100);
+  }
+
+  function closeJingbanModal() { document.getElementById('jingbanModal').classList.remove('show'); }
+
+  async function loginJingban() {
+    const email = document.getElementById('jingbanEmail').value.trim();
+    const alertEl = document.getElementById('jingbanAlert');
+    alertEl.classList.remove('show');
+    if (!email) { alertEl.textContent = '請輸入 Email'; alertEl.classList.add('show'); return; }
+    const btn = document.getElementById('jingbanLoginBtn');
+    btn.disabled = true; btn.textContent = '登入中...';
+    try {
+      const res  = await fetch('/api/auth/ops-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      const json = await res.json();
+      if (!json.success) { alertEl.textContent = json.message || '帳號不正確'; alertEl.classList.add('show'); return; }
+      localStorage.setItem('opsSession', JSON.stringify({ role: 'ops', email: json.email, loginAt: Date.now() }));
+      location.href = '/admin/review';
+    } catch { alertEl.textContent = '連線失敗，請稍後再試'; alertEl.classList.add('show'); }
+    finally { btn.disabled = false; btn.textContent = '登入'; }
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
+    // If already has brand session → go to note
     const brand = sessionStorage.getItem('brandKey');
-    const DISPLAY = { xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能', nschool:'nschool財經', xlab:'xlab', aischool:'AI未來學院' };
-    if (brand && DISPLAY[brand]) { location.href = '/note'; return; }
+    if (brand && BRAND_DISPLAY[brand]) { location.href = '/note'; return; }
+    updateJingbanButton();
     document.getElementById('brandSelect').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
   });
 
