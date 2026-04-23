@@ -20,12 +20,13 @@ function doPost(e) {
     }
 
     switch (payload.action) {
-      case 'append_application':       return appendApplication(payload);
-      case 'update_application_status':return updateApplicationStatus(payload);
-      case 'save_category':            return saveCategory(payload);
-      case 'read_categories':          return readCategories(payload);
-      case 'read_applications':        return readApplications(payload);
-      case 'send_member_email':        return sendMemberEmail(payload);
+      case 'append_application':        return appendApplication(payload);
+      case 'update_application_status': return updateApplicationStatus(payload);
+      case 'update_application_note':   return updateApplicationNote(payload);
+      case 'save_category':             return saveCategory(payload);
+      case 'read_categories':           return readCategories(payload);
+      case 'read_applications':         return readApplications(payload);
+      case 'send_member_email':         return sendMemberEmail(payload);
       default:
         return jsonResponse({ success: false, error: 'Unknown action: ' + payload.action });
     }
@@ -69,6 +70,7 @@ function appendApplication(p) {
       '否',                 // T 是否已寄送
       now,                  // U 最後更新時間
       p.managerApproval || '', // V 主管同意
+      '',                   // W 經辦備注
     ]);
 
     return jsonResponse({ success: true, applicationId: applicationId });
@@ -122,6 +124,29 @@ function updateApplicationStatus(p) {
       return jsonResponse({ success: true, emailError: mailErr.message });
     }
   }
+
+  return jsonResponse({ success: true });
+}
+
+// ── update_application_note ───────────────────
+// 更新經辦備注（只允許 pending 狀態）
+function updateApplicationNote(p) {
+  var ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(SHEET_LOG);
+  var data  = sheet.getDataRange().getValues();
+  var now   = new Date().toISOString();
+
+  var rowIndex = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === p.applicationId) { rowIndex = i + 1; break; }
+  }
+  if (rowIndex === -1) return jsonResponse({ success: false, error: '找不到申請單: ' + p.applicationId });
+
+  var row = data[rowIndex - 1];
+  if (row[15] !== 'pending') return jsonResponse({ success: false, error: '只有待審核的申請可以更新備注' });
+
+  sheet.getRange(rowIndex, 23).setValue(p.internalNote || ''); // W 經辦備注
+  sheet.getRange(rowIndex, 21).setValue(now);                  // U 最後更新時間
 
   return jsonResponse({ success: true });
 }
@@ -291,6 +316,7 @@ function readApplications(p) {
       emailSent:        row[19],
       updatedAt:        row[20],
       managerApproval:  row[21] || '',
+      internalNote:     row[22] || '',
     });
   }
 
@@ -358,9 +384,10 @@ function initializeSheets() {
       '申請單號','送出時間','品牌','brandKey','申請人姓名',
       '學員姓名','學員email','member_id','分類項目名稱','分類ID',
       '扣%類型','扣%值','目的','需求','備註',
-      '狀態','審核時間','審核人','拒絕原因','是否已寄送','最後更新時間'
+      '狀態','審核時間','審核人','拒絕原因','是否已寄送','最後更新時間',
+      '主管同意','經辦備注'
     ]);
-    logSheet.getRange(1, 1, 1, 21).setFontWeight('bold').setBackground('#f0f0f0');
+    logSheet.getRange(1, 1, 1, 23).setFontWeight('bold').setBackground('#f0f0f0');
     logSheet.setFrozenRows(1);
     logSheet.setColumnWidth(1, 160);
     logSheet.setColumnWidth(2, 160);
@@ -368,6 +395,7 @@ function initializeSheets() {
     logSheet.setColumnWidth(7, 180);
     logSheet.setColumnWidth(13, 200);
     logSheet.setColumnWidth(14, 200);
+    logSheet.setColumnWidth(23, 250);
   }
 
   // ── 分類設定 ───────────────────────────────

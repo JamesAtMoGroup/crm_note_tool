@@ -104,6 +104,23 @@
   </div>
 </div>
 
+<!-- 經辦備注 Modal -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal">
+    <div class="modal-title">📝 經辦備注</div>
+    <div id="noteModalMeta" style="font-size:13px;color:var(--text-muted);margin-bottom:14px"></div>
+    <div class="field">
+      <label>備注內容</label>
+      <textarea id="noteContent" style="min-height:140px" placeholder="輸入備注…"></textarea>
+    </div>
+    <div class="alert" id="noteAlert"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeNote()">取消</button>
+      <button class="btn btn-primary" id="noteSaveBtn" onclick="saveNote()">儲存備注</button>
+    </div>
+  </div>
+</div>
+
 <script src="/ops.js"></script>
 <script>
   let currentAppId = null, currentApp = null, allData = [];
@@ -187,7 +204,8 @@
         ${a.rejectReason ? `<div class="app-body-row"><span class="app-body-label" style="color:var(--error)">拒絕原因</span><span>${a.rejectReason}</span></div>` : ''}
         ${a.reviewedAt ? `<div class="app-body-row"><span class="app-body-label">審核時間</span><span>${fmtDate(a.reviewedAt)}</span></div>` : ''}
       </div>
-      ${showActions ? `<div class="app-actions"><button class="btn btn-primary btn-sm" onclick="openApprove('${a.applicationId}')">核准</button><button class="btn btn-danger btn-sm" onclick="openReject('${a.applicationId}')">拒絕</button></div>` : ''}
+      ${a.internalNote ? `<div class="app-body-row" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)"><span class="app-body-label" style="color:#7a4f00">📝 備注</span><span style="white-space:pre-wrap;color:#7a4f00">${a.internalNote}</span></div>` : ''}
+      ${showActions ? `<div class="app-actions"><button class="btn btn-primary btn-sm" onclick="openApprove('${a.applicationId}')">核准</button><button class="btn btn-danger btn-sm" onclick="openReject('${a.applicationId}')">拒絕</button><button class="btn btn-outline btn-sm" onclick="openNote('${a.applicationId}')">${a.internalNote ? '✏️ 修改備注' : '📝 備注'}</button></div>` : ''}
     </div>`;
   }
 
@@ -280,6 +298,36 @@
       loadApplications();
     } catch { showAlert(alert, '操作失敗，請重試'); }
     finally { btn.disabled = false; btn.textContent = '確認拒絕'; }
+  }
+
+  function openNote(id) {
+    currentAppId = id;
+    currentApp   = allData.find(a => a.applicationId === id);
+    document.getElementById('noteModalMeta').textContent = `${id} · ${currentApp.memberName}（${currentApp.memberEmail}）`;
+    document.getElementById('noteContent').value = currentApp.internalNote || '';
+    document.getElementById('noteAlert').classList.remove('show');
+    document.getElementById('noteModal').classList.add('show');
+    setTimeout(() => document.getElementById('noteContent').focus(), 100);
+  }
+
+  function closeNote() { document.getElementById('noteModal').classList.remove('show'); }
+
+  async function saveNote() {
+    const content = document.getElementById('noteContent').value.trim();
+    const alertEl = document.getElementById('noteAlert');
+    alertEl.classList.remove('show');
+    const btn = document.getElementById('noteSaveBtn');
+    btn.disabled = true; btn.textContent = '儲存中...';
+    try {
+      const r = await opsPost('/api/application/note', { applicationId: currentAppId, internalNote: content });
+      if (!r.success) { showAlert(alertEl, r.message || '儲存失敗'); return; }
+      // update local data so card re-renders immediately
+      const idx = allData.findIndex(a => a.applicationId === currentAppId);
+      if (idx !== -1) allData[idx].internalNote = content;
+      closeNote();
+      renderList();
+    } catch { showAlert(alertEl, '連線失敗，請重試'); }
+    finally { btn.disabled = false; btn.textContent = '儲存備注'; }
   }
 
   function exportCsv() {

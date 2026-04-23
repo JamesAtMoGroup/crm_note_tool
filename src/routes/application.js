@@ -110,6 +110,16 @@ router.post('/review', requireOps, async (req, res) => {
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
+// POST /api/application/note  (update internal ops note)
+router.post('/note', requireOps, async (req, res) => {
+  try {
+    const { applicationId, internalNote } = req.body;
+    if (!applicationId) return res.status(400).json({ success: false, message: '缺少 applicationId' });
+    const r = await callAppsScript('update_application_note', { applicationId, internalNote: internalNote || '' });
+    res.json(r);
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 // GET /api/application/export  (CSV download)
 router.get('/export', requireOps, async (req, res) => {
   try {
@@ -122,11 +132,11 @@ router.get('/export', requireOps, async (req, res) => {
     const rows   = r.data;
     const header = ['申請單號','送出時間','品牌','brandKey','申請人姓名','學員姓名',
                     '學員email','member_id','分類項目名稱','分類ID','扣%類型','扣%值',
-                    '目的','需求','備註','狀態','審核時間','審核人','拒絕原因','是否已寄送','最後更新時間'];
+                    '目的','需求','備註','狀態','審核時間','審核人','拒絕原因','是否已寄送','最後更新時間','主管同意','經辦備注'];
     const cols   = ['applicationId','createdAt','brandDisplay','brandKey','applicantName',
                     'memberName','memberEmail','memberId','itemName','categoryId','deductType',
                     'deductValue','purpose','requirement','note','status','reviewedAt','reviewedBy',
-                    'rejectReason','emailSent','updatedAt'];
+                    'rejectReason','emailSent','updatedAt','managerApproval','internalNote'];
 
     const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines  = [header.map(escape).join(','),
