@@ -20,60 +20,31 @@
       min-height: 100vh; display: flex;
       align-items: center; justify-content: center; padding: 24px 16px;
     }
-    .wrap { width: 100%; max-width: 400px; }
-    .logo-label {
-      font-family: 'DM Mono', monospace; font-size: 11px;
-      letter-spacing: 0.12em; color: var(--text-muted);
-      text-transform: uppercase; margin-bottom: 6px;
-    }
+    .wrap { width: 100%; max-width: 380px; }
+    .logo-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
     h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 28px; }
-
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 24px; margin-bottom: 12px;
-    }
-    .card-title {
-      font-family: 'DM Mono', monospace; font-size: 11px;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-muted); margin-bottom: 18px;
-      padding-bottom: 10px; border-bottom: 1px solid var(--border);
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
     .field { margin-bottom: 16px; }
-    .field:last-of-type { margin-bottom: 0; }
     label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
-    input, select {
+    select {
       width: 100%; padding: 10px 14px;
       font-family: 'Noto Sans TC', sans-serif; font-size: 14px;
       color: var(--text); background: var(--bg);
       border: 1px solid var(--border); border-radius: var(--radius);
       outline: none; transition: border-color .15s; appearance: none;
-    }
-    input:focus, select:focus { border-color: var(--border-focus); background: #fff; }
-    select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer;
     }
+    select:focus { border-color: var(--border-focus); background-color: #fff; }
     .btn {
-      width: 100%; padding: 13px; margin-top: 16px;
+      width: 100%; padding: 13px; margin-top: 4px;
       font-family: 'Noto Sans TC', sans-serif; font-size: 14px; font-weight: 500;
+      background: var(--text); color: #fff;
       border: none; border-radius: var(--radius); cursor: pointer;
       transition: opacity .15s, transform .1s;
     }
     .btn:active { transform: scale(0.98); }
-    .btn-brand { background: var(--text); color: #fff; }
-    .btn-ops   { background: var(--accent); color: #fff; }
-    .divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 4px 0; color: var(--text-muted); font-size: 12px;
-    }
-    .divider::before, .divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-    .alert {
-      display: none; padding: 10px 14px; border-radius: var(--radius);
-      font-size: 13px; margin-top: 12px;
-      background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error);
-    }
+    .alert { display: none; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-top: 12px; background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error); }
     .alert.show { display: block; }
   </style>
 </head>
@@ -81,10 +52,7 @@
 <div class="wrap">
   <div class="logo-label">Internal Tool</div>
   <h1>客服工具</h1>
-
-  <!-- 顧問登入 -->
   <div class="card">
-    <div class="card-title">顧問登入</div>
     <div class="field">
       <label>選擇品牌</label>
       <select id="brandSelect">
@@ -97,87 +65,25 @@
         <option value="aischool">AI未來學院</option>
       </select>
     </div>
-    <button class="btn btn-brand" onclick="loginBrand()">登入</button>
-    <div class="alert" id="brandError"></div>
-  </div>
-
-  <div class="divider">或</div>
-
-  <!-- OPS 登入 -->
-  <div class="card">
-    <div class="card-title">OPS 登入</div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="opsEmail" placeholder="輸入 Email" />
-    </div>
-    <button class="btn btn-ops" onclick="loginOps()">登入</button>
-    <div class="alert" id="opsError"></div>
+    <button class="btn" onclick="login()">登入</button>
+    <div class="alert" id="err"></div>
   </div>
 </div>
-
 <script>
-  const BRAND_DISPLAY = {
-    xuemi: '學米', sixdigital: '無限', kkschool: 'nschool職能',
-    nschool: 'nschool財經', xlab: 'xlab', aischool: 'AI未來學院',
-  };
-
-  // 已登入則直接跳轉
   window.addEventListener('DOMContentLoaded', () => {
     const brand = sessionStorage.getItem('brandKey');
-    if (brand && BRAND_DISPLAY[brand]) { location.href = '/note'; return; }
-
-    const ops = getOpsSession();
-    if (ops) { location.href = '/apply'; return; }
-
-    document.getElementById('opsEmail').addEventListener('keydown', e => {
-      if (e.key === 'Enter') loginOps();
-    });
+    const DISPLAY = { xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能', nschool:'nschool財經', xlab:'xlab', aischool:'AI未來學院' };
+    if (brand && DISPLAY[brand]) { location.href = '/note'; return; }
+    document.getElementById('brandSelect').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
   });
 
-  function getOpsSession() {
-    try {
-      const s = localStorage.getItem('opsSession');
-      if (!s) return null;
-      const obj = JSON.parse(s);
-      if (Date.now() - obj.loginAt > 30 * 24 * 60 * 60 * 1000) {
-        localStorage.removeItem('opsSession'); return null;
-      }
-      return obj;
-    } catch { return null; }
-  }
-
-  function loginBrand() {
+  function login() {
     const val = document.getElementById('brandSelect').value;
-    const err = document.getElementById('brandError');
+    const err = document.getElementById('err');
     err.classList.remove('show');
     if (!val) { err.textContent = '請選擇品牌'; err.classList.add('show'); return; }
     sessionStorage.setItem('brandKey', val);
     location.href = '/note';
-  }
-
-  async function loginOps() {
-    const email = document.getElementById('opsEmail').value.trim();
-    const err   = document.getElementById('opsError');
-    err.classList.remove('show');
-    if (!email) { err.textContent = '請輸入 Email'; err.classList.add('show'); return; }
-
-    try {
-      const res  = await fetch('/api/auth/ops-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const json = await res.json();
-      if (!json.success) { err.textContent = json.message || '帳號不正確'; err.classList.add('show'); return; }
-
-      localStorage.setItem('opsSession', JSON.stringify({
-        role: 'ops', email: json.email, loginAt: Date.now(),
-      }));
-      location.href = '/apply';
-    } catch {
-      err.textContent = '連線失敗，請稍後再試';
-      err.classList.add('show');
-    }
   }
 </script>
 </body>

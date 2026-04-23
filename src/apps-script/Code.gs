@@ -68,6 +68,7 @@ function appendApplication(p) {
       '',                   // S 拒絕原因
       '否',                 // T 是否已寄送
       now,                  // U 最後更新時間
+      p.managerApproval || '', // V 主管同意
     ]);
 
     return jsonResponse({ success: true, applicationId: applicationId });
@@ -283,12 +284,13 @@ function readApplications(p) {
       purpose:       row[12],
       requirement:   row[13],
       note:          row[14],
-      status:        row[15],
-      reviewedAt:    row[16] || null,
-      reviewedBy:    row[17] || null,
-      rejectReason:  row[18] || null,
-      emailSent:     row[19],
-      updatedAt:     row[20],
+      status:           row[15],
+      reviewedAt:       row[16] || null,
+      reviewedBy:       row[17] || null,
+      rejectReason:     row[18] || null,
+      emailSent:        row[19],
+      updatedAt:        row[20],
+      managerApproval:  row[21] || '',
     });
   }
 

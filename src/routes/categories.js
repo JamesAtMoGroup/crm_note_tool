@@ -1,7 +1,7 @@
 const express    = require('express');
 const router     = express.Router();
 const { callAppsScript } = require('../services/appsScript');
-const { requireOps }     = require('../middleware/opsAuth');
+const { requireOps, requireAuth } = require('../middleware/opsAuth');
 
 let cache = null, cacheAt = 0;
 const TTL = 5 * 60 * 1000;
@@ -16,7 +16,7 @@ async function getAll(includeInactive) {
 }
 
 // GET /api/categories/list?brand=&all=true
-router.get('/list', requireOps, async (req, res) => {
+router.get('/list', requireAuth, async (req, res) => {
   try {
     const all    = req.query.all === 'true';
     const brand  = req.query.brand;

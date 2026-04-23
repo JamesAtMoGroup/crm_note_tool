@@ -1,7 +1,7 @@
 const express    = require('express');
 const router     = express.Router();
 const { callAppsScript } = require('../services/appsScript');
-const { requireOps }     = require('../middleware/opsAuth');
+const { requireOps, requireAuth } = require('../middleware/opsAuth');
 const { BRAND_DISPLAY_NAMES } = require('../constants/brands');
 const { executeGraphQL } = require('../graphql');
 const { getBrandConfig } = require('../auth');
@@ -44,11 +44,11 @@ function fmtDeduct(deductType, deductValue) {
 }
 
 // POST /api/application/create
-router.post('/create', requireOps, async (req, res) => {
+router.post('/create', requireAuth, async (req, res) => {
   try {
     const { brandKey, applicantName, memberEmail, memberId, memberName,
             categoryId, customItemName, purpose, requirement, note,
-            itemName, deductType, deductValue } = req.body;
+            itemName, deductType, deductValue, managerApproval } = req.body;
 
     const brandDisplay = BRAND_DISPLAY_NAMES[brandKey] || brandKey;
     const finalItem    = categoryId === 'CUSTOM' ? customItemName : itemName;
@@ -59,6 +59,7 @@ router.post('/create', requireOps, async (req, res) => {
       categoryId, itemName: finalItem,
       deductType, deductValue: deductValue ?? null,
       purpose, requirement, note: note || '',
+      managerApproval: managerApproval || '',
     });
 
     // CRM note（送出時）

@@ -17,4 +17,12 @@ function requireBrand(req, res, next) {
   res.status(403).json({ success: false, message: '需要品牌登入' });
 }
 
-module.exports = { requireOps, requireBrand };
+// 允許品牌登入或經辦登入（用於顧問可觸發的 API）
+function requireAuth(req, res, next) {
+  const opsOk   = req.headers['x-role'] === 'ops' && req.headers['x-ops-email'] === OPS_EMAIL;
+  const brandOk = !!req.headers['x-brand-key'];
+  if (opsOk || brandOk) { req.brandKey = req.headers['x-brand-key']; return next(); }
+  res.status(403).json({ success: false, message: '請先登入' });
+}
+
+module.exports = { requireOps, requireBrand, requireAuth };

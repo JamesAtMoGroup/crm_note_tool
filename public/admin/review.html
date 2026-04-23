@@ -9,7 +9,7 @@
 </head>
 <body>
 <nav class="nav">
-  <span class="nav-brand">OPS</span>
+  <span class="nav-brand">經辦</span>
   <a href="/apply">特殊申請</a>
   <a href="/admin/review">審核</a>
   <a href="/admin/categories/list">分類目錄</a>
@@ -176,6 +176,7 @@
         <div class="app-body-row"><span class="app-body-label">學員</span><span>${a.memberName}（${a.memberEmail}）</span></div>
         <div class="app-body-row"><span class="app-body-label">目的</span><span>${a.purpose}</span></div>
         <div class="app-body-row"><span class="app-body-label">需求</span><span>${a.requirement}</span></div>
+        ${a.managerApproval ? `<div class="app-body-row"><span class="app-body-label">主管同意</span><span>經 ${a.managerApproval} 主管同意</span></div>` : ''}
         ${a.note ? `<div class="app-body-row"><span class="app-body-label">備註</span><span>${a.note}</span></div>` : ''}
         ${a.rejectReason ? `<div class="app-body-row"><span class="app-body-label" style="color:var(--error)">拒絕原因</span><span>${a.rejectReason}</span></div>` : ''}
         ${a.reviewedAt ? `<div class="app-body-row"><span class="app-body-label">審核時間</span><span>${fmtDate(a.reviewedAt)}</span></div>` : ''}

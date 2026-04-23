@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>客服溝通紀錄</title>
+  <title>客服工具</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -12,336 +12,691 @@
       --bg: #f4f3ef; --surface: #ffffff; --border: #dddbd5;
       --border-focus: #1a1a1a; --text: #1a1a1a; --text-muted: #888;
       --accent: #2d5a3d; --accent-light: #e8f0ea; --error: #c0392b;
-      --success: #2d5a3d; --radius: 6px;
+      --success: #2d5a3d; --warn: #7a4f00; --warn-bg: #fef9ec; --warn-border: #f0d99a;
+      --success-bg: #e8f0ea; --success-border: #c3d9c8;
+      --error-bg: #fdf0ef; --error-border: #f0c5c2;
+      --radius: 6px;
     }
-    body {
-      font-family: 'Noto Sans TC', sans-serif; background: var(--bg);
-      color: var(--text); min-height: 100vh; display: flex;
-      align-items: flex-start; justify-content: center; padding: 40px 16px 80px;
-    }
-    .container { width: 100%; max-width: 680px; }
-    .header { margin-bottom: 36px; display: flex; align-items: flex-start; justify-content: space-between; }
-    .header-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
-    .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
-    .brand-badge {
-      display: inline-flex; align-items: center; gap: 8px; margin-top: 6px;
-      padding: 4px 10px; background: var(--accent-light); border: 1px solid #c3d9c8;
-      border-radius: 20px; font-size: 12px; color: var(--accent); font-weight: 500;
-    }
-    .logout-btn {
-      margin-top: 8px; padding: 6px 14px; font-family: 'Noto Sans TC', sans-serif;
-      font-size: 12px; color: var(--text-muted); background: transparent;
-      border: 1px solid var(--border); border-radius: var(--radius);
-      cursor: pointer; transition: border-color .15s, color .15s;
-    }
-    .logout-btn:hover { border-color: var(--text-muted); color: var(--text); }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; }
-    .card-title { font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-    .section-label { font-size: 13px; font-weight: 600; color: var(--text); margin: 20px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-    .section-label:first-child { margin-top: 0; }
+    body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Header */
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 50; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-title { font-size: 15px; font-weight: 600; }
+    .brand-badge { display: inline-flex; align-items: center; padding: 3px 10px; background: var(--accent-light); border: 1px solid #c3d9c8; border-radius: 20px; font-size: 12px; color: var(--accent); font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .btn-sm { padding: 6px 12px; font-family: 'Noto Sans TC', sans-serif; font-size: 12px; font-weight: 500; border-radius: var(--radius); cursor: pointer; transition: opacity .15s; white-space: nowrap; }
+    .btn-jingban { background: var(--text); color: #fff; border: none; }
+    .btn-jingban.logged-in { background: var(--accent); }
+    .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+    .btn-logout:hover { border-color: var(--text-muted); color: var(--text); }
+
+    /* Tabs */
+    .tabs { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; gap: 0; }
+    .tab-btn { padding: 12px 16px; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); transition: all .15s; }
+    .tab-btn.active { border-bottom-color: var(--text); color: var(--text); }
+
+    /* Main */
+    .main { max-width: 680px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+    .card-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+    /* Forms */
     .field { margin-bottom: 18px; }
     .field:last-child { margin-bottom: 0; }
-    label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .section-label { font-size: 13px; font-weight: 600; color: var(--text); margin: 20px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .section-label:first-child { margin-top: 0; }
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
     label .req { color: var(--error); margin-left: 2px; }
-    input, select, textarea {
+    input[type=text], input[type=email], input[type=number], select, textarea {
       width: 100%; padding: 10px 14px; font-family: 'Noto Sans TC', sans-serif;
       font-size: 14px; color: var(--text); background: var(--bg);
       border: 1px solid var(--border); border-radius: var(--radius);
       outline: none; transition: border-color .15s, background .15s; appearance: none;
     }
     input:focus, select:focus, textarea:focus { border-color: var(--border-focus); background: #fff; }
-    input::placeholder, textarea::placeholder { color: var(--text-muted); }
     input[readonly] { color: var(--text-muted); cursor: default; }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
     select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer;
     }
-    textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+    /* Search row */
     .search-row { display: flex; gap: 8px; }
     .search-row input { flex: 1; }
-    .btn { padding: 10px 18px; font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 500; border-radius: var(--radius); border: none; cursor: pointer; transition: opacity .15s, transform .1s; white-space: nowrap; }
-    .btn:active { transform: scale(0.98); }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 9px 16px; font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 500; border-radius: var(--radius); border: none; cursor: pointer; transition: opacity .15s, transform .1s; white-space: nowrap; }
+    .btn:active { transform: scale(.98); }
     .btn:disabled { opacity: .45; cursor: not-allowed; }
-    .btn-search { background: var(--text); color: #fff; }
-    .btn-submit { width: 100%; background: var(--accent); color: #fff; padding: 14px; font-size: 15px; margin-top: 4px; }
-    .member-result { display: none; margin-top: 14px; padding: 14px 16px; background: var(--accent-light); border: 1px solid #c3d9c8; border-radius: var(--radius); font-size: 13px; }
+    .btn-dark   { background: var(--text); color: #fff; }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-full   { width: 100%; padding: 13px; font-size: 14px; }
+
+    /* Member result */
+    .member-result { display: none; margin-top: 12px; padding: 12px 16px; background: var(--accent-light); border: 1px solid #c3d9c8; border-radius: var(--radius); font-size: 13px; }
     .member-result.show { display: flex; align-items: center; gap: 12px; }
-    .member-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; }
-    .member-name { font-weight: 600; }
+    .member-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+    .member-name  { font-weight: 600; }
     .member-email { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
-    .alert { display: none; padding: 12px 16px; border-radius: var(--radius); font-size: 13px; margin-top: 14px; }
+
+    /* Alerts */
+    .alert { display: none; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-top: 12px; line-height: 1.5; }
     .alert.show { display: block; }
-    .alert-error { background: #fdf0ef; border: 1px solid #f0c5c2; color: var(--error); }
-    .alert-success { background: var(--accent-light); border: 1px solid #c3d9c8; color: var(--success); }
-    #formSection { display: none; }
-    #formSection.show { display: block; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; align-items: center; justify-content: center; padding: 24px 16px; }
+    .alert-error   { background: var(--error-bg);   border: 1px solid var(--error-border);   color: var(--error); }
+    .alert-success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+
+    /* Deduct badge */
+    .deduct-badge { padding: 10px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 500; margin-top: 8px; }
+    .deduct-red    { background: var(--error-bg);   border: 1px solid var(--error-border);   color: var(--error); }
+    .deduct-green  { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .deduct-yellow { background: var(--warn-bg);    border: 1px solid var(--warn-border);    color: var(--warn); }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
     .modal-overlay.show { display: flex; }
-    .modal { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; padding: 32px; }
-    .modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .modal { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 28px; }
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .modal-divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .modal-row { display: flex; gap: 8px; font-size: 13px; margin-bottom: 8px; line-height: 1.5; }
+    .modal-row-label { color: var(--text-muted); flex-shrink: 0; width: 80px; }
+    .modal-row-value { color: var(--text); word-break: break-word; white-space: pre-wrap; }
+    .modal-section-label { font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+    .modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
     .modal-check { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); border: 1px solid #c3d9c8; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-    .modal-title { font-size: 18px; font-weight: 600; }
-    .modal-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-    .modal-divider { height: 1px; background: var(--border); margin: 20px 0; }
-    .modal-section-label { font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
-    .modal-row { display: flex; gap: 8px; margin-bottom: 10px; font-size: 13px; line-height: 1.5; }
-    .modal-row-label { color: var(--text-muted); flex-shrink: 0; width: 140px; }
-    .modal-row-value { color: var(--text); white-space: pre-wrap; word-break: break-word; }
-    .btn-new { width: 100%; margin-top: 24px; background: var(--accent); color: #fff; padding: 13px; font-size: 14px; }
+
+    /* Jingban login modal */
+    .jingban-modal .modal { max-width: 360px; }
+
+    /* RWD */
     @media (max-width: 640px) {
-      body { padding: 24px 16px 60px; }
-      .container { max-width: 100%; }
-      .header { flex-direction: column; gap: 12px; }
-      .card { padding: 20px 16px; }
+      .header { padding: 0 14px; }
+      .header-title { font-size: 14px; }
+      .tabs { padding: 0 14px; }
+      .main { padding: 20px 16px 60px; }
+      .card { padding: 18px 16px; }
       .modal { padding: 20px 16px; }
-      .modal-row { flex-wrap: wrap; }
-      .modal-row-label { width: 80px; }
+      .modal-footer { flex-direction: column-reverse; }
+      .modal-footer .btn { width: 100%; justify-content: center; }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div>
-      <div class="header-label">Internal Tool</div>
-      <h1>客服溝通紀錄</h1>
-      <div class="brand-badge" id="brandBadge"></div>
-    </div>
-    <button class="logout-btn" onclick="logout()">登出</button>
-  </div>
 
-  <div class="card">
-    <div class="card-title">01 · 搜尋學員</div>
-    <div class="field">
-      <label>學員信箱<span class="req">*</span></label>
-      <div class="search-row">
-        <input type="email" id="emailInput" placeholder="student@example.com" />
-        <button class="btn btn-search" id="searchBtn" onclick="searchMember()">搜尋</button>
-      </div>
-    </div>
-    <div class="member-result" id="memberResult">
-      <div class="member-avatar" id="memberAvatar"></div>
-      <div>
-        <div class="member-name" id="memberName"></div>
-        <div class="member-email" id="memberEmail"></div>
-      </div>
-    </div>
-    <div class="alert alert-error" id="searchError"></div>
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <span class="header-title">客服工具</span>
+    <span class="brand-badge" id="brandBadge"></span>
   </div>
+  <div class="header-right">
+    <button class="btn-sm btn-jingban" id="jingbanBtn" onclick="openJingbanLogin()">經辦登入</button>
+    <button class="btn-sm btn-logout" onclick="logout()">登出</button>
+  </div>
+</div>
 
-  <div id="formSection">
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" id="tab-apply" onclick="switchTab('apply')">特殊申請</button>
+  <button class="tab-btn" id="tab-note" onclick="switchTab('note')">客服溝通紀錄</button>
+</div>
+
+<div class="main">
+
+  <!-- ══════════════════════════════════════
+       Tab: 特殊申請
+  ══════════════════════════════════════ -->
+  <div id="tabApply">
+
+    <!-- 搜尋學員 -->
     <div class="card">
-      <div class="card-title">02 · 填寫紀錄</div>
-      <div id="dynamicForm"></div>
-    </div>
-    <div class="card">
+      <div class="card-title">01 · 搜尋學員</div>
       <div class="field">
-        <label>記錄人員<span class="req">*</span></label>
-        <input type="text" id="staffName" placeholder="你的名字" />
+        <label>學員信箱<span class="req">*</span></label>
+        <div class="search-row">
+          <input type="email" id="a_emailInput" placeholder="student@example.com"/>
+          <button class="btn btn-dark" id="a_searchBtn" onclick="applySearchMember()">搜尋</button>
+        </div>
       </div>
-      <button class="btn btn-submit" id="submitBtn" onclick="submitNote()">送出並同步 CRM</button>
-      <div class="alert alert-error" id="submitError"></div>
-      <div class="alert alert-success" id="submitSuccess"></div>
+      <div class="member-result" id="a_memberResult">
+        <div class="member-avatar" id="a_memberAvatar"></div>
+        <div><div class="member-name" id="a_memberName"></div><div class="member-email" id="a_memberEmail"></div></div>
+      </div>
+      <div class="alert alert-error" id="a_searchAlert"></div>
+    </div>
+
+    <!-- 填寫申請 -->
+    <div id="a_formSection" style="display:none">
+      <div class="card">
+        <div class="card-title">02 · 填寫申請內容</div>
+
+        <div class="field">
+          <label>申請人姓名<span class="req">*</span></label>
+          <input type="text" id="a_applicantName" placeholder="填寫人姓名"/>
+        </div>
+
+        <div class="field">
+          <label>分類項目<span class="req">*</span></label>
+          <select id="a_categorySelect" onchange="applyOnCategoryChange()">
+            <option value="">請選擇分類</option>
+          </select>
+          <div id="a_deductBadge" style="margin-top:8px"></div>
+        </div>
+
+        <div id="a_customItemField" class="field" style="display:none">
+          <label>自訂項目名稱<span class="req">*</span></label>
+          <input type="text" id="a_customItemName" placeholder="請描述申請項目"/>
+        </div>
+
+        <div class="field">
+          <label>目的<span class="req">*</span></label>
+          <textarea id="a_purpose" placeholder="申請的目的"></textarea>
+        </div>
+        <div class="field">
+          <label>需求<span class="req">*</span></label>
+          <textarea id="a_requirement" placeholder="具體的需求說明"></textarea>
+        </div>
+        <div class="field">
+          <label>經<span style="display:inline-block;min-width:60px;border-bottom:1px solid var(--border);margin:0 4px;vertical-align:bottom" id="managerInlineLabel">&nbsp;</span>主管同意<span class="req">*</span></label>
+          <input type="text" id="a_managerApproval" placeholder="主管姓名" oninput="updateManagerLabel(this.value)"/>
+        </div>
+        <div class="field">
+          <label>備註</label>
+          <textarea id="a_note" placeholder="補充說明（選填）"></textarea>
+        </div>
+
+        <div class="alert alert-error" id="a_formAlert"></div>
+        <button class="btn btn-accent btn-full" style="margin-top:16px" onclick="applyOpenConfirm()">檢視並送出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Tab: 客服溝通紀錄
+  ══════════════════════════════════════ -->
+  <div id="tabNote" style="display:none">
+
+    <div class="card">
+      <div class="card-title">01 · 搜尋學員</div>
+      <div class="field">
+        <label>學員信箱<span class="req">*</span></label>
+        <div class="search-row">
+          <input type="email" id="n_emailInput" placeholder="student@example.com"/>
+          <button class="btn btn-dark" id="n_searchBtn" onclick="noteSearchMember()">搜尋</button>
+        </div>
+      </div>
+      <div class="member-result" id="n_memberResult">
+        <div class="member-avatar" id="n_memberAvatar"></div>
+        <div><div class="member-name" id="n_memberName"></div><div class="member-email" id="n_memberEmail"></div></div>
+      </div>
+      <div class="alert alert-error" id="n_searchAlert"></div>
+    </div>
+
+    <div id="n_formSection" style="display:none">
+      <div class="card">
+        <div class="card-title">02 · 填寫紀錄</div>
+        <div id="n_dynamicForm"></div>
+      </div>
+      <div class="card">
+        <div class="field">
+          <label>記錄人員<span class="req">*</span></label>
+          <input type="text" id="n_staffName" placeholder="你的名字"/>
+        </div>
+        <button class="btn btn-accent btn-full" id="n_submitBtn" onclick="noteSubmit()">送出並同步 CRM</button>
+        <div class="alert alert-error"   id="n_submitError"></div>
+        <div class="alert alert-success" id="n_submitSuccess"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 經辦登入 Modal -->
+<div class="modal-overlay jingban-modal" id="jingbanModal">
+  <div class="modal">
+    <div class="modal-title">經辦登入</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="jingbanEmail" placeholder="輸入 Email" onkeydown="if(event.key==='Enter')loginJingban()"/>
+    </div>
+    <div class="alert alert-error" id="jingbanAlert"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeJingbanModal()">取消</button>
+      <button class="btn btn-dark" id="jingbanLoginBtn" onclick="loginJingban()">登入</button>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="successModal">
+<!-- 申請確認 Modal -->
+<div class="modal-overlay" id="a_confirmModal">
+  <div class="modal">
+    <div class="modal-title">請確認申請內容</div>
+    <div id="a_confirmBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('a_confirmModal').classList.remove('show')">返回修改</button>
+      <button class="btn btn-accent" id="a_confirmBtn" onclick="applySubmit()">確認送出</button>
+    </div>
+  </div>
+</div>
+
+<!-- 申請成功 Modal -->
+<div class="modal-overlay" id="a_successModal">
+  <div class="modal" style="text-align:center;padding:32px 24px">
+    <div style="font-size:36px;margin-bottom:12px">✅</div>
+    <div class="modal-title">申請已送出</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-top:6px">申請單號：<span id="a_successId" style="font-family:'DM Mono',monospace;font-weight:600;color:var(--text)"></span></div>
+    <div class="modal-footer" style="justify-content:center;gap:12px;margin-top:24px">
+      <button class="btn btn-outline" onclick="applyReset()">再送一筆</button>
+    </div>
+  </div>
+</div>
+
+<!-- 客服紀錄成功 Modal -->
+<div class="modal-overlay" id="n_successModal">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-check">✅</div>
       <div>
         <div class="modal-title">已成功寫入 CRM</div>
-        <div class="modal-subtitle" id="modalSubtitle"></div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:2px" id="n_modalSubtitle"></div>
       </div>
     </div>
     <div class="modal-divider"></div>
-    <div id="modalBody"></div>
-    <button class="btn btn-new" onclick="closeModalAndReset()">再寫一筆</button>
+    <div id="n_modalBody"></div>
+    <button class="btn btn-accent btn-full" style="margin-top:20px" onclick="noteReset()">再寫一筆</button>
   </div>
 </div>
 
 <script>
-  const BRAND_DISPLAY = {
-    xuemi: '學米', sixdigital: '無限', kkschool: 'nschool職能',
-    nschool: 'nschool財經', xlab: 'xlab', aischool: 'AI未來學院',
-  };
-  const XLAB_MATERIALS = [
-    '【MKT】數位行銷','【DE】商用設計','【KOL】網紅多媒體',
-    '【PRD】產品設計','【WEB】網站工程','【AI】人工智慧、Python',
-    '【WA】AI高效工具(n8n、GAS)','【ALL】全領域'
-  ];
+// ─── Shared ────────────────────────────────────────────────────────
+const BRAND_DISPLAY = {
+  xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能',
+  nschool:'nschool財經', xlab:'xlab', aischool:'AI未來學院',
+};
+const XLAB_MATERIALS = [
+  '【MKT】數位行銷','【DE】商用設計','【KOL】網紅多媒體',
+  '【PRD】產品設計','【WEB】網站工程','【AI】人工智慧、Python',
+  '【WA】AI高效工具(n8n、GAS)','【ALL】全領域'
+];
 
-  let currentBrand = null, foundMemberId = null, foundMemberName = null;
+let currentBrand = null;
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const brand = sessionStorage.getItem('brandKey');
-    if (!brand || !BRAND_DISPLAY[brand]) { location.href = '/'; return; }
-    currentBrand = brand;
-    document.getElementById('brandBadge').textContent = BRAND_DISPLAY[brand];
-    renderForm(brand);
-    document.getElementById('emailInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') searchMember();
-    });
+window.addEventListener('DOMContentLoaded', () => {
+  const brand = sessionStorage.getItem('brandKey');
+  if (!brand || !BRAND_DISPLAY[brand]) { location.href = '/'; return; }
+  currentBrand = brand;
+  document.getElementById('brandBadge').textContent = BRAND_DISPLAY[brand];
+  noteRenderForm(brand);
+  loadApplyCategories();
+  document.getElementById('a_emailInput').addEventListener('keydown', e => { if (e.key === 'Enter') applySearchMember(); });
+  document.getElementById('n_emailInput').addEventListener('keydown', e => { if (e.key === 'Enter') noteSearchMember(); });
+  updateJingbanButton();
+});
+
+function logout() {
+  sessionStorage.removeItem('brandKey');
+  location.href = '/';
+}
+
+function switchTab(tab) {
+  ['apply','note'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? '' : 'none';
   });
+}
 
-  function logout() {
-    sessionStorage.removeItem('brandKey');
-    location.href = '/';
+// Brand auth headers (for consultant API calls)
+function brandHeaders() {
+  return { 'Content-Type': 'application/json', 'x-brand-key': currentBrand };
+}
+
+// ─── 經辦登入 ───────────────────────────────────────────────────────
+function getJingbanSession() {
+  try {
+    const s = localStorage.getItem('opsSession');
+    if (!s) return null;
+    const obj = JSON.parse(s);
+    if (Date.now() - obj.loginAt > 30 * 24 * 60 * 60 * 1000) { localStorage.removeItem('opsSession'); return null; }
+    return obj;
+  } catch { return null; }
+}
+
+function updateJingbanButton() {
+  const btn = document.getElementById('jingbanBtn');
+  const session = getJingbanSession();
+  if (session) {
+    btn.textContent = '前往審核';
+    btn.classList.add('logged-in');
+    btn.onclick = () => { location.href = '/admin/review'; };
+  } else {
+    btn.textContent = '經辦登入';
+    btn.classList.remove('logged-in');
+    btn.onclick = openJingbanLogin;
   }
+}
 
-  function field(label, id, type, opts = {}) {
-    const req = opts.required ? '<span class="req">*</span>' : '';
-    const ph  = opts.placeholder || '';
+function openJingbanLogin() {
+  document.getElementById('jingbanEmail').value = '';
+  document.getElementById('jingbanAlert').classList.remove('show');
+  document.getElementById('jingbanModal').classList.add('show');
+  setTimeout(() => document.getElementById('jingbanEmail').focus(), 100);
+}
+
+function closeJingbanModal() { document.getElementById('jingbanModal').classList.remove('show'); }
+
+async function loginJingban() {
+  const email = document.getElementById('jingbanEmail').value.trim();
+  const alertEl = document.getElementById('jingbanAlert');
+  alertEl.classList.remove('show');
+  if (!email) { alertEl.textContent = '請輸入 Email'; alertEl.classList.add('show'); return; }
+  const btn = document.getElementById('jingbanLoginBtn');
+  btn.disabled = true; btn.textContent = '登入中...';
+  try {
+    const res  = await fetch('/api/auth/ops-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const json = await res.json();
+    if (!json.success) { alertEl.textContent = json.message || '帳號不正確'; alertEl.classList.add('show'); return; }
+    localStorage.setItem('opsSession', JSON.stringify({ role: 'ops', email: json.email, loginAt: Date.now() }));
+    location.href = '/admin/review';
+  } catch { alertEl.textContent = '連線失敗，請稍後再試'; alertEl.classList.add('show'); }
+  finally { btn.disabled = false; btn.textContent = '登入'; }
+}
+
+// ─── 特殊申請 Tab ────────────────────────────────────────────────────
+let a_categories = [], a_selectedCategory = null;
+let a_memberId = null, a_memberName = null, a_memberEmail = null;
+
+async function loadApplyCategories() {
+  try {
+    const res  = await fetch(`/api/categories/list?brand=${currentBrand}`, { headers: brandHeaders() });
+    const json = await res.json();
+    a_categories = json.data || [];
+    const sel = document.getElementById('a_categorySelect');
+    sel.innerHTML = '<option value="">請選擇分類</option>' +
+      a_categories.map(c => `<option value="${c.id}">${c.itemName}（${c.deductType}${c.deductType==='固定'?' '+c.deductValue+'%':''}）</option>`).join('') +
+      '<option value="CUSTOM">非既有需求（自填）</option>';
+  } catch { /* silent */ }
+}
+
+async function applySearchMember() {
+  const email = document.getElementById('a_emailInput').value.trim();
+  const alertEl = document.getElementById('a_searchAlert');
+  alertEl.classList.remove('show');
+  document.getElementById('a_memberResult').classList.remove('show');
+  document.getElementById('a_formSection').style.display = 'none';
+  a_memberId = null; a_memberName = null; a_memberEmail = null;
+  if (!email) { alertEl.textContent = '請輸入學員信箱'; alertEl.classList.add('show'); return; }
+  const btn = document.getElementById('a_searchBtn');
+  btn.disabled = true; btn.textContent = '搜尋中...';
+  try {
+    const res  = await fetch('/api/member/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, brandKey: currentBrand }) });
+    const json = await res.json();
+    if (!json.success) { alertEl.textContent = `在 ${BRAND_DISPLAY[currentBrand]} 找不到此學員，是否選錯品牌？`; alertEl.classList.add('show'); return; }
+    const m = json.data;
+    a_memberId = m.id; a_memberName = m.name; a_memberEmail = m.email;
+    document.getElementById('a_memberAvatar').textContent = m.name?.[0] || '?';
+    document.getElementById('a_memberName').textContent = m.name;
+    document.getElementById('a_memberEmail').textContent = m.email;
+    document.getElementById('a_memberResult').classList.add('show');
+    document.getElementById('a_formSection').style.display = '';
+  } catch { alertEl.textContent = '連線失敗，請稍後再試'; alertEl.classList.add('show'); }
+  finally { btn.disabled = false; btn.textContent = '搜尋'; }
+}
+
+function applyOnCategoryChange() {
+  const val = document.getElementById('a_categorySelect').value;
+  document.getElementById('a_customItemField').style.display = val === 'CUSTOM' ? '' : 'none';
+  a_selectedCategory = val === 'CUSTOM'
+    ? { id: 'CUSTOM', deductType: '個案評估', deductValue: null }
+    : a_categories.find(c => c.id === val) || null;
+  document.getElementById('a_deductBadge').innerHTML = a_selectedCategory ? deductBadgeHtml(a_selectedCategory.deductType, a_selectedCategory.deductValue) : '';
+}
+
+function deductBadgeHtml(deductType, deductValue) {
+  if (!deductType) return '';
+  if (deductType === '固定') {
+    const v = parseFloat(deductValue) || 0;
+    return v === 0 ? `<div class="deduct-badge deduct-green">✅ 此項不扣業績</div>` : `<div class="deduct-badge deduct-red">⚠️ 此項將扣承攬業績 ${v}%</div>`;
+  }
+  if (deductType === '個案評估') return `<div class="deduct-badge deduct-yellow">⚠️ 此項為個案評估，最終扣%由審核時決定</div>`;
+  if (deductType === '不扣')    return `<div class="deduct-badge deduct-green">✅ 此項不扣業績</div>`;
+  return `<div class="deduct-badge deduct-yellow">⚠️ 非既有需求，最終扣%由審核時決定</div>`;
+}
+
+function updateManagerLabel(val) {
+  document.getElementById('managerInlineLabel').textContent = val || ' ';
+}
+
+function applyOpenConfirm() {
+  const applicant = document.getElementById('a_applicantName').value.trim();
+  const catVal    = document.getElementById('a_categorySelect').value;
+  const custom    = document.getElementById('a_customItemName').value.trim();
+  const purpose   = document.getElementById('a_purpose').value.trim();
+  const req       = document.getElementById('a_requirement').value.trim();
+  const manager   = document.getElementById('a_managerApproval').value.trim();
+  const alertEl   = document.getElementById('a_formAlert');
+  alertEl.classList.remove('show');
+  if (!applicant) { alertEl.textContent = '請填寫申請人姓名'; alertEl.classList.add('show'); return; }
+  if (!catVal)    { alertEl.textContent = '請選擇分類項目'; alertEl.classList.add('show'); return; }
+  if (catVal === 'CUSTOM' && !custom) { alertEl.textContent = '請填寫自訂項目名稱'; alertEl.classList.add('show'); return; }
+  if (!purpose)   { alertEl.textContent = '請填寫目的'; alertEl.classList.add('show'); return; }
+  if (!req)       { alertEl.textContent = '請填寫需求'; alertEl.classList.add('show'); return; }
+  if (!manager)   { alertEl.textContent = '請填寫主管同意姓名'; alertEl.classList.add('show'); return; }
+
+  const itemName = catVal === 'CUSTOM' ? custom : (a_selectedCategory?.itemName || '');
+  const note     = document.getElementById('a_note').value.trim();
+
+  document.getElementById('a_confirmBody').innerHTML = `
+    <div class="modal-row"><span class="modal-row-label">品牌</span><span class="modal-row-value">${BRAND_DISPLAY[currentBrand]}</span></div>
+    <div class="modal-row"><span class="modal-row-label">申請人</span><span class="modal-row-value">${applicant}</span></div>
+    <div class="modal-row"><span class="modal-row-label">學員</span><span class="modal-row-value">${a_memberName}（${a_memberEmail}）</span></div>
+    <div class="modal-divider"></div>
+    <div class="modal-row"><span class="modal-row-label">申請項目</span><span class="modal-row-value">${itemName}</span></div>
+    ${deductBadgeHtml(a_selectedCategory?.deductType, a_selectedCategory?.deductValue)}
+    <div class="modal-divider"></div>
+    <div class="modal-row"><span class="modal-row-label">目的</span><span class="modal-row-value">${purpose}</span></div>
+    <div class="modal-row"><span class="modal-row-label">需求</span><span class="modal-row-value">${req}</span></div>
+    <div class="modal-row"><span class="modal-row-label">主管同意</span><span class="modal-row-value">經 ${manager} 主管同意</span></div>
+    ${note ? `<div class="modal-row"><span class="modal-row-label">備註</span><span class="modal-row-value">${note}</span></div>` : ''}
+  `;
+  document.getElementById('a_confirmModal').classList.add('show');
+}
+
+async function applySubmit() {
+  const btn = document.getElementById('a_confirmBtn');
+  btn.disabled = true; btn.textContent = '送出中...';
+  try {
+    const catVal  = document.getElementById('a_categorySelect').value;
+    const custom  = document.getElementById('a_customItemName').value.trim();
+    const manager = document.getElementById('a_managerApproval').value.trim();
+    const res  = await fetch('/api/application/create', {
+      method: 'POST', headers: brandHeaders(),
+      body: JSON.stringify({
+        brandKey:        currentBrand,
+        applicantName:   document.getElementById('a_applicantName').value.trim(),
+        memberEmail:     a_memberEmail,
+        memberId:        a_memberId,
+        memberName:      a_memberName,
+        categoryId:      catVal,
+        customItemName:  custom,
+        itemName:        catVal === 'CUSTOM' ? custom : a_selectedCategory?.itemName,
+        deductType:      a_selectedCategory?.deductType,
+        deductValue:     a_selectedCategory?.deductValue ?? null,
+        purpose:         document.getElementById('a_purpose').value.trim(),
+        requirement:     document.getElementById('a_requirement').value.trim(),
+        note:            document.getElementById('a_note').value.trim(),
+        managerApproval: manager,
+      }),
+    });
+    const json = await res.json();
+    document.getElementById('a_confirmModal').classList.remove('show');
+    if (!json.success) { document.getElementById('a_formAlert').textContent = json.message || '送出失敗'; document.getElementById('a_formAlert').classList.add('show'); return; }
+    document.getElementById('a_successId').textContent = json.applicationId;
+    document.getElementById('a_successModal').classList.add('show');
+  } catch { document.getElementById('a_confirmModal').classList.remove('show'); document.getElementById('a_formAlert').textContent = '連線失敗'; document.getElementById('a_formAlert').classList.add('show'); }
+  finally { btn.disabled = false; btn.textContent = '確認送出'; }
+}
+
+function applyReset() {
+  document.getElementById('a_successModal').classList.remove('show');
+  document.getElementById('a_emailInput').value = '';
+  document.getElementById('a_applicantName').value = '';
+  document.getElementById('a_purpose').value = '';
+  document.getElementById('a_requirement').value = '';
+  document.getElementById('a_managerApproval').value = '';
+  document.getElementById('a_note').value = '';
+  document.getElementById('a_memberResult').classList.remove('show');
+  document.getElementById('a_formSection').style.display = 'none';
+  document.getElementById('a_searchAlert').classList.remove('show');
+  document.getElementById('a_formAlert').classList.remove('show');
+  document.getElementById('a_deductBadge').innerHTML = '';
+  document.getElementById('managerInlineLabel').textContent = ' ';
+  a_memberId = null; a_memberName = null; a_memberEmail = null; a_selectedCategory = null;
+}
+
+// ─── 客服溝通紀錄 Tab ────────────────────────────────────────────────
+let n_memberId = null, n_memberName = null;
+
+function noteRenderForm(brandKey) {
+  const el = document.getElementById('n_dynamicForm');
+  const req = (label, id, type, opts={}) => {
+    const r = opts.required ? '<span class="req">*</span>' : '';
+    const ph = opts.placeholder || '';
     let input = '';
-    if (type === 'textarea') {
-      input = `<textarea id="${id}" placeholder="${ph}"></textarea>`;
-    } else if (type === 'select') {
-      const options = opts.options.map(o =>
-        typeof o === 'string' ? `<option value="${o}">${o}</option>`
-          : `<option value="${o.v}">${o.l}</option>`
-      ).join('');
-      input = `<select id="${id}"><option value="">請選擇</option>${options}</select>`;
+    if (type === 'textarea') input = `<textarea id="${id}" placeholder="${ph}"></textarea>`;
+    else if (type === 'select') {
+      const opts2 = opts.options.map(o => typeof o === 'string' ? `<option value="${o}">${o}</option>` : `<option value="${o.v}">${o.l}</option>`).join('');
+      input = `<select id="${id}"><option value="">請選擇</option>${opts2}</select>`;
     } else {
-      input = `<input type="text" id="${id}" placeholder="${ph}" ${opts.readonly ? 'readonly' : ''} />`;
+      input = `<input type="text" id="${id}" placeholder="${ph}" ${opts.readonly?'readonly':''} />`;
     }
-    return `<div class="field"><label>${label}${req}</label>${input}</div>`;
+    return `<div class="field"><label>${label}${r}</label>${input}</div>`;
+  };
+  const sec = t => `<div class="section-label">${t}</div>`;
+  if (brandKey === 'xlab') {
+    el.innerHTML = sec('📌 學員基本資料') +
+      req('學員姓名','f_memberName','text',{required:true,readonly:true}) +
+      req('學員背景科系&職業','f_background','textarea',{required:true,placeholder:'例：資管系 / 業務'}) +
+      req('訓練營梯次','f_campSession','text',{required:true,placeholder:'日期_主題，尚未開課填「尚未」'}) +
+      req('實體/線上','f_mode','select',{required:true,options:['實體','線上','實體+線上']}) +
+      req('教材名稱','f_material','select',{required:true,options:XLAB_MATERIALS}) +
+      sec('📞 Demo 過程紀錄') +
+      req('Demo 中聊到的內容','f_demoContent','textarea',{placeholder:'若有插班，請註明插班'});
+  } else {
+    const hasPortfolio = brandKey !== 'nschool';
+    el.innerHTML = sec('📌 學員基本資料') +
+      req('學員姓名','f_memberName','text',{required:true,readonly:true}) +
+      req('學員背景科系&職業','f_background','textarea',{required:true,placeholder:'例：資管系 / 業務'}) +
+      req('購買領域','f_purchaseDomain','text',{required:true,placeholder:'例：前端工程'}) +
+      sec('🎯 學習目標與動機') +
+      req('加入學院的期待（短、中、長期目標）','f_expectation','textarea',{required:true}) +
+      req('學員特質/個性','f_personality','textarea',{required:true}) +
+      req('學員故事背景（可自由描述）','f_story','textarea',{required:true}) +
+      sec('📞 Demo 過程紀錄') +
+      req('Demo 中聊到的內容','f_demoContent','textarea') +
+      (hasPortfolio ? req('是否有作品集可提供（有請附連結）','f_portfolio','text',{placeholder:'無則留空'}) : '') +
+      req('話術內容','f_salesScript','textarea',{required:true});
   }
+}
 
-  function section(title) { return `<div class="section-label">${title}</div>`; }
+async function noteSearchMember() {
+  const email = document.getElementById('n_emailInput').value.trim();
+  const errEl = document.getElementById('n_searchAlert');
+  errEl.classList.remove('show');
+  document.getElementById('n_memberResult').classList.remove('show');
+  document.getElementById('n_formSection').style.display = 'none';
+  n_memberId = null; n_memberName = null;
+  if (!email) { errEl.textContent = '請輸入學員信箱'; errEl.classList.add('show'); return; }
+  const btn = document.getElementById('n_searchBtn');
+  btn.disabled = true; btn.textContent = '搜尋中...';
+  try {
+    const res  = await fetch('/api/member/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, brandKey: currentBrand }) });
+    const json = await res.json();
+    if (!json.success) { errEl.textContent = json.message; errEl.classList.add('show'); return; }
+    const m = json.data;
+    n_memberId = m.id; n_memberName = m.name;
+    document.getElementById('n_memberAvatar').textContent = m.name?.[0] || '?';
+    document.getElementById('n_memberName').textContent  = m.name;
+    document.getElementById('n_memberEmail').textContent = m.email;
+    const nf = document.getElementById('f_memberName');
+    if (nf) nf.value = m.name;
+    document.getElementById('n_memberResult').classList.add('show');
+    document.getElementById('n_formSection').style.display = '';
+  } catch { errEl.textContent = '連線失敗，請稍後再試'; errEl.classList.add('show'); }
+  finally { btn.disabled = false; btn.textContent = '搜尋'; }
+}
 
-  function renderForm(brandKey) {
-    const el = document.getElementById('dynamicForm');
-    if (brandKey === 'xlab') {
-      el.innerHTML =
-        section('📌 學員基本資料') +
-        field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
-        field('學員背景科系&職業', 'f_background', 'textarea', { required: true, placeholder: '例：資管系 / 業務' }) +
-        field('訓練營梯次', 'f_campSession', 'text', { required: true, placeholder: '日期_主題，尚未開課填「尚未」' }) +
-        field('實體/線上', 'f_mode', 'select', { required: true, options: ['實體','線上','實體+線上'] }) +
-        field('教材名稱', 'f_material', 'select', { required: true, options: XLAB_MATERIALS }) +
-        section('📞 Demo 過程紀錄') +
-        field('Demo 中聊到的內容', 'f_demoContent', 'textarea', { placeholder: '若有插班，請註明插班' });
-    } else {
-      const hasPortfolio = brandKey !== 'nschool';
-      el.innerHTML =
-        section('📌 學員基本資料') +
-        field('學員姓名', 'f_memberName', 'text', { required: true, readonly: true }) +
-        field('學員背景科系&職業', 'f_background', 'textarea', { required: true, placeholder: '例：資管系 / 業務' }) +
-        field('購買領域', 'f_purchaseDomain', 'text', { required: true, placeholder: '例：前端工程' }) +
-        section('🎯 學習目標與動機') +
-        field('加入學院的期待（短、中、長期目標）', 'f_expectation', 'textarea', { required: true }) +
-        field('學員特質/個性', 'f_personality', 'textarea', { required: true }) +
-        field('學員故事背景（可自由描述）', 'f_story', 'textarea', { required: true }) +
-        section('📞 Demo 過程紀錄') +
-        field('Demo 中聊到的內容', 'f_demoContent', 'textarea') +
-        (hasPortfolio ? field('是否有作品集可提供（有請附連結）', 'f_portfolio', 'text', { placeholder: '無則留空' }) : '') +
-        field('話術內容', 'f_salesScript', 'textarea', { required: true });
-    }
+function n_getFormData() {
+  const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : undefined; };
+  if (currentBrand === 'xlab') return { memberName: n_memberName, background: g('f_background'), campSession: g('f_campSession'), mode: g('f_mode'), material: g('f_material'), demoContent: g('f_demoContent') };
+  const d = { memberName: n_memberName, background: g('f_background'), purchaseDomain: g('f_purchaseDomain'), expectation: g('f_expectation'), personality: g('f_personality'), story: g('f_story'), demoContent: g('f_demoContent'), salesScript: g('f_salesScript') };
+  if (currentBrand !== 'nschool') d.portfolio = g('f_portfolio');
+  return d;
+}
+
+function n_getRequired() {
+  if (currentBrand === 'xlab') return [['f_background','學員背景科系&職業'],['f_campSession','訓練營梯次'],['f_mode','實體/線上'],['f_material','教材名稱']];
+  return [['f_background','學員背景科系&職業'],['f_purchaseDomain','購買領域'],['f_expectation','加入學院的期待'],['f_personality','學員特質/個性'],['f_story','學員故事背景'],['f_salesScript','話術內容']];
+}
+
+async function noteSubmit() {
+  const errEl    = document.getElementById('n_submitError');
+  errEl.classList.remove('show');
+  const staffName = document.getElementById('n_staffName').value.trim();
+  if (!n_memberId) { errEl.textContent = '請先搜尋學員'; errEl.classList.add('show'); return; }
+  if (!staffName)  { errEl.textContent = '請填寫記錄人員'; errEl.classList.add('show'); return; }
+  for (const [id, label] of n_getRequired()) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) { errEl.textContent = `請填寫「${label}」`; errEl.classList.add('show'); return; }
   }
+  const btn = document.getElementById('n_submitBtn');
+  btn.disabled = true; btn.textContent = '同步中...';
+  try {
+    const res  = await fetch('/api/note', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brandKey: currentBrand, memberId: n_memberId, staffName, formData: n_getFormData() }) });
+    const json = await res.json();
+    if (!json.success) { errEl.textContent = json.message; errEl.classList.add('show'); return; }
+    n_showSuccessModal(n_getFormData(), staffName);
+  } catch { errEl.textContent = '連線失敗，請稍後再試'; errEl.classList.add('show'); }
+  finally { btn.disabled = false; btn.textContent = '送出並同步 CRM'; }
+}
 
-  async function searchMember() {
-    const email = document.getElementById('emailInput').value.trim();
-    const errEl = document.getElementById('searchError');
-    const resEl = document.getElementById('memberResult');
-    const formEl= document.getElementById('formSection');
-    errEl.classList.remove('show'); resEl.classList.remove('show'); formEl.classList.remove('show');
-    foundMemberId = null; foundMemberName = null;
-    if (!email) return showError(errEl, '請輸入學員信箱');
+function n_row(label, value) {
+  if (!value) return '';
+  return `<div class="modal-row"><span class="modal-row-label">${label}</span><span class="modal-row-value">${value}</span></div>`;
+}
 
-    const btn = document.getElementById('searchBtn');
-    btn.disabled = true; btn.textContent = '搜尋中...';
-    try {
-      const res  = await fetch('/api/member/search', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, brandKey: currentBrand }),
-      });
-      const json = await res.json();
-      if (!json.success) return showError(errEl, json.message);
-      const m = json.data;
-      foundMemberId = m.id; foundMemberName = m.name;
-      document.getElementById('memberAvatar').textContent = m.name?.[0] || '?';
-      document.getElementById('memberName').textContent   = m.name;
-      document.getElementById('memberEmail').textContent  = m.email;
-      const nf = document.getElementById('f_memberName');
-      if (nf) nf.value = m.name;
-      resEl.classList.add('show'); formEl.classList.add('show');
-    } catch { showError(errEl, '連線失敗，請稍後再試'); }
-    finally { btn.disabled = false; btn.textContent = '搜尋'; }
+function n_showSuccessModal(fd, staffName) {
+  const email = document.getElementById('n_memberEmail').textContent;
+  document.getElementById('n_modalSubtitle').textContent = `${BRAND_DISPLAY[currentBrand]} · ${email}`;
+  let html = '';
+  if (currentBrand === 'xlab') {
+    html += `<div class="modal-section-label">📌 學員基本資料</div>` + n_row('學員姓名', fd.memberName) + n_row('學員背景', fd.background) + n_row('訓練營梯次', fd.campSession) + n_row('實體/線上', fd.mode) + n_row('教材名稱', fd.material) + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程紀錄</div>` + n_row('Demo 內容', fd.demoContent || '（未填）');
+  } else {
+    html += `<div class="modal-section-label">📌 學員基本資料</div>` + n_row('學員姓名', fd.memberName) + n_row('學員背景', fd.background) + n_row('購買領域', fd.purchaseDomain) + `<div class="modal-divider"></div><div class="modal-section-label">🎯 學習目標</div>` + n_row('期待', fd.expectation) + n_row('特質/個性', fd.personality) + n_row('故事背景', fd.story) + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程</div>` + n_row('Demo 內容', fd.demoContent || '（未填）');
+    if (currentBrand !== 'nschool') html += n_row('作品集', fd.portfolio || '（未填）');
+    html += n_row('話術內容', fd.salesScript);
   }
+  html += `<div class="modal-divider"></div>` + n_row('記錄人員', staffName);
+  document.getElementById('n_modalBody').innerHTML = html;
+  document.getElementById('n_successModal').classList.add('show');
+}
 
-  function getFormData() {
-    const get = id => { const el = document.getElementById(id); return el ? el.value.trim() : undefined; };
-    if (currentBrand === 'xlab') {
-      return { memberName: foundMemberName, background: get('f_background'), campSession: get('f_campSession'), mode: get('f_mode'), material: get('f_material'), demoContent: get('f_demoContent') };
-    }
-    const data = { memberName: foundMemberName, background: get('f_background'), purchaseDomain: get('f_purchaseDomain'), expectation: get('f_expectation'), personality: get('f_personality'), story: get('f_story'), demoContent: get('f_demoContent'), salesScript: get('f_salesScript') };
-    if (currentBrand !== 'nschool') data.portfolio = get('f_portfolio');
-    return data;
-  }
-
-  function getRequiredFields() {
-    if (currentBrand === 'xlab') return [['f_background','學員背景科系&職業'],['f_campSession','訓練營梯次'],['f_mode','實體/線上'],['f_material','教材名稱']];
-    return [['f_background','學員背景科系&職業'],['f_purchaseDomain','購買領域'],['f_expectation','加入學院的期待'],['f_personality','學員特質/個性'],['f_story','學員故事背景'],['f_salesScript','話術內容']];
-  }
-
-  async function submitNote() {
-    const errEl = document.getElementById('submitError');
-    errEl.classList.remove('show');
-    const staffName = document.getElementById('staffName').value.trim();
-    if (!foundMemberId) return showError(errEl, '請先搜尋學員');
-    if (!staffName)     return showError(errEl, '請填寫記錄人員');
-    for (const [id, label] of getRequiredFields()) {
-      const el = document.getElementById(id);
-      if (!el || !el.value.trim()) return showError(errEl, `請填寫「${label}」`);
-    }
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.textContent = '同步中...';
-    try {
-      const res  = await fetch('/api/note', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brandKey: currentBrand, memberId: foundMemberId, staffName, formData: getFormData() }),
-      });
-      const json = await res.json();
-      if (!json.success) return showError(errEl, json.message);
-      showSuccessModal(getFormData(), staffName);
-    } catch { showError(errEl, '連線失敗，請稍後再試'); }
-    finally { btn.disabled = false; btn.textContent = '送出並同步 CRM'; }
-  }
-
-  function row(label, value) {
-    if (!value) return '';
-    return `<div class="modal-row"><span class="modal-row-label">${label}</span><span class="modal-row-value">${value}</span></div>`;
-  }
-
-  function showSuccessModal(formData, staffName) {
-    const memberEmail = document.getElementById('memberEmail').textContent;
-    document.getElementById('modalSubtitle').textContent = `${BRAND_DISPLAY[currentBrand]} · ${memberEmail}`;
-    let html = '';
-    if (currentBrand === 'xlab') {
-      html += `<div class="modal-section-label">📌 學員基本資料</div>` + row('學員姓名', formData.memberName) + row('學員背景科系&職業', formData.background) + row('訓練營梯次', formData.campSession) + row('實體/線上', formData.mode) + row('教材名稱', formData.material) + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程紀錄</div>` + row('Demo 中聊到的內容', formData.demoContent || '（未填）');
-    } else {
-      html += `<div class="modal-section-label">📌 學員基本資料</div>` + row('學員姓名', formData.memberName) + row('學員背景科系&職業', formData.background) + row('購買領域', formData.purchaseDomain) + `<div class="modal-divider"></div><div class="modal-section-label">🎯 學習目標與動機</div>` + row('加入學院的期待', formData.expectation) + row('學員特質/個性', formData.personality) + row('學員故事背景', formData.story) + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程紀錄</div>` + row('Demo 中聊到的內容', formData.demoContent || '（未填）');
-      if (currentBrand !== 'nschool') html += row('作品集', formData.portfolio || '（未填）');
-      html += row('話術內容', formData.salesScript);
-    }
-    html += `<div class="modal-divider"></div>` + row('記錄人員', staffName);
-    document.getElementById('modalBody').innerHTML = html;
-    document.getElementById('successModal').classList.add('show');
-  }
-
-  function closeModalAndReset() {
-    document.getElementById('successModal').classList.remove('show');
-    document.getElementById('emailInput').value = '';
-    document.getElementById('staffName').value = '';
-    document.getElementById('memberResult').classList.remove('show');
-    document.getElementById('formSection').classList.remove('show');
-    document.getElementById('searchError').classList.remove('show');
-    foundMemberId = null; foundMemberName = null;
-    renderForm(currentBrand);
-  }
-
-  function showError(el, msg) { el.textContent = msg; el.classList.add('show'); }
+function noteReset() {
+  document.getElementById('n_successModal').classList.remove('show');
+  document.getElementById('n_emailInput').value = '';
+  document.getElementById('n_staffName').value = '';
+  document.getElementById('n_memberResult').classList.remove('show');
+  document.getElementById('n_formSection').style.display = 'none';
+  document.getElementById('n_searchAlert').classList.remove('show');
+  document.getElementById('n_submitError').classList.remove('show');
+  n_memberId = null; n_memberName = null;
+  noteRenderForm(currentBrand);
+}
 </script>
 </body>
 </html>
