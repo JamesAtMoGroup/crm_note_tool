@@ -5,6 +5,7 @@ const { requireOps, requireAuth } = require('../middleware/opsAuth');
 const { BRAND_DISPLAY_NAMES } = require('../constants/brands');
 const { executeGraphQL } = require('../graphql');
 const { getBrandConfig } = require('../auth');
+const { sendMail } = require('../services/mailer');
 
 const INSERT_NOTE = `
   mutation InsertNote(
@@ -90,15 +91,37 @@ router.get('/list', requireOps, async (req, res) => {
 // Extra fields for CRM note (not forwarded to Apps Script): memberId, brandKey, itemName
 router.post('/review', requireOps, async (req, res) => {
   try {
-    const { memberId, brandKey, itemName, decision, deductPercent, rejectReason, ...scriptPayload } = req.body;
+    const { memberId, brandKey, itemName, decision, deductPercent, rejectReason,
+            sendEmail, emailSubject, emailContent, memberEmail, ...scriptPayload } = req.body;
 
-    const r = await callAppsScript('update_application_status', { decision, deductPercent, rejectReason, ...scriptPayload });
+    // Apps Script handles status update only (no email)
+    const r = await callAppsScript('update_application_status', {
+      decision, deductPercent, rejectReason,
+      sendEmail: false, // email handled by Node.js
+      ...scriptPayload,
+    });
+
+    if (!r.success) return res.json(r);
+
+    // Send email via nodemailer
+    let emailError = null;
+    if (sendEmail && emailContent && memberEmail) {
+      try {
+        await sendMail({
+          to:      memberEmail,
+          subject: emailSubject || '關於您的課程安排確認',
+          text:    emailContent,
+        });
+      } catch (e) {
+        emailError = e.message;
+        console.error('[email send]', e.message);
+      }
+    }
 
     // CRM note（審核時）
-    if (r.success && memberId && brandKey) {
+    if (memberId && brandKey) {
       let desc;
       if (decision === 'approved') {
-        const deductStr = deductPercent != null ? `扣 ${deductPercent}%` : fmtDeduct(scriptPayload.currentDeductType, deductPercent);
         desc = `✅ 特殊申請核准\n項目：${itemName || ''}\n${deductPercent != null ? `扣%：${deductPercent}%` : ''}\n申請單號：${scriptPayload.applicationId}`.trim();
       } else {
         desc = `❌ 特殊申請拒絕\n項目：${itemName || ''}\n原因：${rejectReason || ''}\n申請單號：${scriptPayload.applicationId}`;
@@ -106,7 +129,7 @@ router.post('/review', requireOps, async (req, res) => {
       writeCrmNote(brandKey, memberId, desc).catch(e => console.error('[CRM note review]', e.message));
     }
 
-    res.json(r);
+    res.json({ ...r, emailError });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 

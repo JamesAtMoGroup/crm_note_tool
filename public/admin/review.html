@@ -223,7 +223,7 @@
     document.getElementById('approveDeduct').value = '';
     document.getElementById('sendEmailCheck').checked = false;
     document.getElementById('emailArea').style.display = 'none';
-    document.getElementById('emailSubject').value = '您的特殊申請已核准';
+    document.getElementById('emailSubject').value = '關於您的課程安排確認';
     document.getElementById('emailContent').value = currentApp.emailTemplate || `Hi ${currentApp.memberName}，\n\n您的特殊申請已核准：${currentApp.itemName}。\n\n如有任何問題歡迎聯繫業務同仁。`;
     document.getElementById('approveAlert').classList.remove('show');
     document.getElementById('approveModal').classList.add('show');
@@ -257,6 +257,7 @@
         memberId:      currentApp.memberId,
         brandKey:      currentApp.brandKey,
         itemName:      currentApp.itemName,
+        memberEmail:   currentApp.memberEmail,
       });
       if (r.emailError) alert && showAlert(document.getElementById('approveAlert'), `核准成功，但寄信失敗：${r.emailError}`, 'warn');
       closeApprove();
