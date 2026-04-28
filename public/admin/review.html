@@ -38,11 +38,6 @@
       <div class="field"><label>品牌</label>
         <select id="filterBrand">
           <option value="">全部</option>
-          <option value="xuemi">學米</option>
-          <option value="sixdigital">無限</option>
-          <option value="kkschool">nschool職能</option>
-          <option value="nschool">nschool財經</option>
-          <option value="xlab">xlab</option>
         </select>
       </div>
       <div class="field"><label>起日</label><input type="date" id="filterStart"/></div>
@@ -125,8 +120,11 @@
 <script>
   let currentAppId = null, currentApp = null, allData = [];
 
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', async () => {
     initOpsPage('/admin/review');
+    await loadBrands();
+    fillBrandSelect(document.getElementById('filterBrand'),
+      { excludeAischool: true, includeEmpty: true, emptyLabel: '全部' });
     // 預設當月
     const now  = new Date();
     const y    = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');

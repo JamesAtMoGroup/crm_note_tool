@@ -30,11 +30,6 @@
       <label>品牌<span class="req">*</span></label>
       <select id="brandSelect" onchange="onBrandChange()">
         <option value="">請選擇</option>
-        <option value="xuemi">學米</option>
-        <option value="sixdigital">無限</option>
-        <option value="kkschool">nschool職能</option>
-        <option value="nschool">nschool財經</option>
-        <option value="xlab">xlab</option>
       </select>
     </div>
   </div>
@@ -131,7 +126,12 @@
   let categories = [];
   let selectedCategory = null;
 
-  window.addEventListener('DOMContentLoaded', () => initOpsPage('/apply'));
+  window.addEventListener('DOMContentLoaded', async () => {
+    initOpsPage('/apply');
+    await loadBrands();
+    fillBrandSelect(document.getElementById('brandSelect'),
+      { excludeAischool: true, includeEmpty: true, emptyLabel: '請選擇' });
+  });
 
   function onBrandChange() {
     const brand = document.getElementById('brandSelect').value;

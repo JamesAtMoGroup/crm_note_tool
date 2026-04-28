@@ -91,13 +91,7 @@
       <div class="field">
         <label>選擇品牌</label>
         <select id="brandSelect">
-          <option value="">請選擇</option>
-          <option value="xuemi">學米</option>
-          <option value="sixdigital">無限</option>
-          <option value="kkschool">nschool職能</option>
-          <option value="nschool">nschool財經</option>
-          <option value="xlab">xlab</option>
-          <option value="aischool">AI未來學院</option>
+          <option value="">載入中…</option>
         </select>
       </div>
       <button class="btn-main" onclick="login()">登入</button>
@@ -123,7 +117,22 @@
 </div>
 
 <script>
-  const BRAND_DISPLAY = { xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能', nschool:'nschool財經', xlab:'xlab', aischool:'AI未來學院' };
+  let BRAND_DISPLAY = {};
+
+  async function loadBrandsAndFillSelect() {
+    try {
+      const res  = await fetch('/api/brands');
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message);
+      json.data.forEach(b => { BRAND_DISPLAY[b.key] = b.name; });
+      const sel = document.getElementById('brandSelect');
+      sel.innerHTML = '<option value="">請選擇</option>'
+        + json.data.map(b => `<option value="${b.key}">${b.name}</option>`).join('');
+    } catch (e) {
+      const sel = document.getElementById('brandSelect');
+      sel.innerHTML = '<option value="">載入失敗，請重新整理</option>';
+    }
+  }
 
   function getJingbanSession() {
     try {
@@ -177,12 +186,13 @@
     finally { btn.disabled = false; btn.textContent = '登入'; }
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    // If already has brand session → go to note
+  window.addEventListener('DOMContentLoaded', async () => {
+    // If already has brand session → go to note (validation happens server-side on /note)
     const brand = sessionStorage.getItem('brandKey');
-    if (brand && BRAND_DISPLAY[brand]) { location.href = '/note'; return; }
+    if (brand) { location.href = '/note'; return; }
     updateJingbanButton();
     document.getElementById('brandSelect').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+    await loadBrandsAndFillSelect();
   });
 
   function login() {

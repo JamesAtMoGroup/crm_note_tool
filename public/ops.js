@@ -1,10 +1,36 @@
 // Shared OPS utilities
 
-const BRAND_DISPLAY = {
-  xuemi: '學米', sixdigital: '無限', kkschool: 'nschool職能',
-  nschool: 'nschool財經', xlab: 'xlab', aischool: 'AI未來學院',
-};
-const APPLY_BRANDS = ['xuemi','sixdigital','kkschool','nschool','xlab'];
+// Brands are fetched from /api/brands (sourced from brands.txt / Zeabur BRANDS env)
+// loadBrands() caches result for 5 min; populates BRAND_DISPLAY map
+let BRAND_DISPLAY = {};
+let APPLY_BRANDS  = [];
+let _brandsCache  = null;
+let _brandsCacheAt = 0;
+const BRANDS_TTL = 5 * 60 * 1000;
+
+async function loadBrands() {
+  if (_brandsCache && Date.now() - _brandsCacheAt < BRANDS_TTL) return _brandsCache;
+  const res  = await fetch('/api/brands');
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message || 'Failed to load brands');
+  _brandsCache  = json.data; // [{ key, name }, ...]
+  _brandsCacheAt = Date.now();
+  // Repopulate maps
+  BRAND_DISPLAY = {};
+  json.data.forEach(b => { BRAND_DISPLAY[b.key] = b.name; });
+  APPLY_BRANDS  = json.data.filter(b => b.key !== 'aischool').map(b => b.key);
+  return _brandsCache;
+}
+
+// Fill a <select> with brand options. opts: { excludeAischool, includeEmpty, emptyLabel }
+function fillBrandSelect(selectEl, opts = {}) {
+  if (!selectEl) return;
+  const list = (_brandsCache || []).filter(b => opts.excludeAischool ? b.key !== 'aischool' : true);
+  const empty = opts.includeEmpty
+    ? `<option value="">${opts.emptyLabel || '請選擇'}</option>`
+    : '';
+  selectEl.innerHTML = empty + list.map(b => `<option value="${b.key}">${b.name}</option>`).join('');
+}
 
 function getOpsSession() {
   try {

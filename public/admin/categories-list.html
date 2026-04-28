@@ -28,17 +28,16 @@
 
 <script src="/ops.js"></script>
 <script>
-  const BRANDS_ORDER = ['xuemi','sixdigital','kkschool','nschool','xlab'];
-
   window.addEventListener('DOMContentLoaded', async () => {
     initOpsPage('/admin/categories/list');
     try {
+      await loadBrands();
       const r = await opsGet('/api/categories/list');
       const cats = r.data || [];
       if (cats.length === 0) { document.getElementById('listArea').innerHTML = '<div class="empty">尚無分類，請先前往分類編輯新增</div>'; return; }
 
       let html = '';
-      BRANDS_ORDER.forEach(bk => {
+      APPLY_BRANDS.forEach(bk => {
         const bCats = cats.filter(c => c.brandKey === bk);
         if (!bCats.length) return;
         html += `<div class="section-heading">${BRAND_DISPLAY[bk]}</div>

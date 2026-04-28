@@ -321,10 +321,7 @@
 
 <script>
 // ─── Shared ────────────────────────────────────────────────────────
-const BRAND_DISPLAY = {
-  xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能',
-  nschool:'nschool財經', xlab:'xlab', aischool:'AI未來學院',
-};
+let BRAND_DISPLAY = {};
 const XLAB_MATERIALS = [
   '【MKT】數位行銷','【DE】商用設計','【KOL】網紅多媒體',
   '【PRD】產品設計','【WEB】網站工程','【AI】人工智慧、Python',
@@ -333,9 +330,18 @@ const XLAB_MATERIALS = [
 
 let currentBrand = null;
 
-window.addEventListener('DOMContentLoaded', () => {
+async function loadBrandDisplay() {
+  const res  = await fetch('/api/brands');
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message);
+  json.data.forEach(b => { BRAND_DISPLAY[b.key] = b.name; });
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
   const brand = sessionStorage.getItem('brandKey');
-  if (!brand || !BRAND_DISPLAY[brand]) { location.href = '/'; return; }
+  if (!brand) { location.href = '/'; return; }
+  try { await loadBrandDisplay(); } catch { location.href = '/'; return; }
+  if (!BRAND_DISPLAY[brand]) { location.href = '/'; return; }
   currentBrand = brand;
   document.getElementById('brandBadge').textContent = BRAND_DISPLAY[brand];
   noteRenderForm(brand);

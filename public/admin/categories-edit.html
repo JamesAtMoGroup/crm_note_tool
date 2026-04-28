@@ -39,11 +39,6 @@
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
     <select id="filterBrand" onchange="renderCats()" style="width:140px">
       <option value="">全部品牌</option>
-      <option value="xuemi">學米</option>
-      <option value="sixdigital">無限</option>
-      <option value="kkschool">nschool職能</option>
-      <option value="nschool">nschool財經</option>
-      <option value="xlab">xlab</option>
     </select>
     <select id="filterActive" onchange="renderCats()" style="width:120px">
       <option value="active">啟用中</option>
@@ -63,11 +58,6 @@
       <label>品牌<span class="req">*</span></label>
       <select id="fBrand">
         <option value="">請選擇</option>
-        <option value="xuemi">學米</option>
-        <option value="sixdigital">無限</option>
-        <option value="kkschool">nschool職能</option>
-        <option value="nschool">nschool財經</option>
-        <option value="xlab">xlab</option>
       </select>
     </div>
     <div class="field">
@@ -112,11 +102,15 @@
 
 <script src="/ops.js"></script>
 <script>
-  const BRAND_DISPLAY_NAMES_MAP = { xuemi:'學米', sixdigital:'無限', kkschool:'nschool職能', nschool:'nschool財經', xlab:'xlab' };
   let allCats = [], editingId = null;
 
   window.addEventListener('DOMContentLoaded', async () => {
     initOpsPage('/admin/categories/edit');
+    await loadBrands();
+    fillBrandSelect(document.getElementById('filterBrand'),
+      { excludeAischool: true, includeEmpty: true, emptyLabel: '全部品牌' });
+    fillBrandSelect(document.getElementById('fBrand'),
+      { excludeAischool: true, includeEmpty: true, emptyLabel: '請選擇' });
     await loadCats();
   });
 
@@ -199,7 +193,7 @@
     try {
       const data = {
         brandKey:      brand,
-        brandDisplay:  BRAND_DISPLAY_NAMES_MAP[brand],
+        brandDisplay:  BRAND_DISPLAY[brand],
         itemName,
         deductType:    deductT,
         deductValue:   deductT === '個案評估' ? null : parseFloat(deductV) || 0,
