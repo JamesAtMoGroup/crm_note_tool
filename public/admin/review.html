@@ -124,7 +124,7 @@
     initOpsPage('/admin/review');
     await loadBrands();
     fillBrandSelect(document.getElementById('filterBrand'),
-      { excludeAischool: true, includeEmpty: true, emptyLabel: '全部' });
+      { includeEmpty: true, emptyLabel: '全部' });
     // 預設當月
     const now  = new Date();
     const y    = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');

@@ -108,9 +108,9 @@
     initOpsPage('/admin/categories/edit');
     await loadBrands();
     fillBrandSelect(document.getElementById('filterBrand'),
-      { excludeAischool: true, includeEmpty: true, emptyLabel: '全部品牌' });
+      { includeEmpty: true, emptyLabel: '全部品牌' });
     fillBrandSelect(document.getElementById('fBrand'),
-      { excludeAischool: true, includeEmpty: true, emptyLabel: '請選擇' });
+      { includeEmpty: true, emptyLabel: '請選擇' });
     await loadCats();
   });
 

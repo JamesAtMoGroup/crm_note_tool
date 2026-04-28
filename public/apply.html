@@ -130,7 +130,7 @@
     initOpsPage('/apply');
     await loadBrands();
     fillBrandSelect(document.getElementById('brandSelect'),
-      { excludeAischool: true, includeEmpty: true, emptyLabel: '請選擇' });
+      { includeEmpty: true, emptyLabel: '請選擇' });
   });
 
   function onBrandChange() {
