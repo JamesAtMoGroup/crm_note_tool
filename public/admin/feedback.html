@@ -44,17 +44,17 @@
 </head>
 <body>
 
-<!-- Nav (only shown when logged in) -->
-<nav class="nav" v-if="loggedIn" v-cloak>
-  <span class="nav-brand">客訴/需求</span>
-  <a href="/" style="color:var(--text-muted)">← 返回主頁</a>
-  <div class="nav-right">
-    <span style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace">{{ session.email }}</span>
-    <button class="nav-logout" @click="logout">登出</button>
-  </div>
-</nav>
-
 <div id="app" v-cloak>
+
+  <!-- Nav (only shown when logged in; inside Vue scope so v-if/@click work) -->
+  <nav class="nav" v-if="loggedIn">
+    <span class="nav-brand">客訴/需求</span>
+    <a href="/" style="color:var(--text-muted)">← 返回主頁</a>
+    <div class="nav-right">
+      <span style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace">{{ session.email }}</span>
+      <button class="nav-logout" @click="logout">登出</button>
+    </div>
+  </nav>
 
   <!-- ─── LOGIN VIEW ─────────────────────────────────────────────── -->
   <div v-if="!loggedIn" class="login-wrap">
