@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>客訴與需求申請</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/ops.css">
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+  /* Page-specific overrides */
+  .auth-pill{display:inline-flex;align-items:center;gap:8px;background:var(--accent-light);border:1px solid var(--success-border);color:var(--accent);padding:6px 12px;border-radius:20px;font-size:12px;margin-bottom:18px;font-family:'DM Mono',monospace}
+  .auth-pill::before{content:'●';color:var(--accent)}
+
+  .radio-row{display:flex;gap:8px;flex-wrap:wrap}
+  .radio-card{flex:1;min-width:140px;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);cursor:pointer;transition:all .15s;font-size:13px}
+  .radio-card:hover{border-color:var(--text-muted)}
+  .radio-card input{accent-color:var(--accent)}
+  .radio-card.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:500}
+
+  .brand-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .brand-grid .radio-card{min-width:0}
+
+  .file-input{display:block;width:100%;font-size:13px;color:var(--text-muted)}
+  .file-input::file-selector-button{margin-right:12px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;font-family:inherit}
+  .file-input::file-selector-button:hover{border-color:var(--text-muted)}
+  .file-hint{font-size:12px;color:var(--accent);margin-top:6px}
+
+  .search-error{color:var(--error);font-size:12px;margin-top:8px}
+
+  .success-icon{width:64px;height:64px;border-radius:50%;background:var(--success-bg);border:1px solid var(--success-border);color:var(--success);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px}
+  .case-id-pill{display:inline-block;padding:8px 16px;background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn);border-radius:var(--radius);font-family:'DM Mono',monospace;font-weight:600;font-size:14px;margin-bottom:8px}
+  .summary-row{display:grid;grid-template-columns:120px 1fr;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .summary-row:last-child{border-bottom:none}
+  .summary-label{color:var(--text-muted)}
+
+  /* Login screen */
+  .login-wrap{max-width:380px;margin:80px auto;padding:0 20px}
+  .login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px}
+  .login-title{font-size:18px;font-weight:600;margin-bottom:6px}
+  .login-subtitle{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- Nav (only shown when logged in) -->
+<nav class="nav" v-if="loggedIn" v-cloak>
+  <span class="nav-brand">客訴/需求</span>
+  <a href="/" style="color:var(--text-muted)">← 返回主頁</a>
+  <div class="nav-right">
+    <span style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace">{{ session.email }}</span>
+    <button class="nav-logout" @click="logout">登出</button>
+  </div>
+</nav>
+
+<div id="app" v-cloak>
+
+  <!-- ─── LOGIN VIEW ─────────────────────────────────────────────── -->
+  <div v-if="!loggedIn" class="login-wrap">
+    <div class="login-card">
+      <div class="login-title">客訴/需求申請 — 登入</div>
+      <div class="login-subtitle">本系統限授權人員使用。請輸入你的工作 email。</div>
+      <div class="field">
+        <label>Email<span class="req">*</span></label>
+        <input type="email" v-model="loginEmail" placeholder="you@mogroup.tw" @keydown.enter="login">
+      </div>
+      <div v-if="loginError" class="alert alert-error show">{{ loginError }}</div>
+      <button class="btn btn-dark btn-full" @click="login" :disabled="loggingIn" style="margin-top:16px">
+        {{ loggingIn ? '驗證中...' : '登入' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── FORM VIEW ──────────────────────────────────────────────── -->
+  <div v-else class="main-narrow">
+
+    <!-- 已送出狀態 -->
+    <div v-if="isSubmitted">
+      <div style="text-align:center;margin-bottom:24px">
+        <div class="success-icon">✓</div>
+        <div class="page-title" style="margin-bottom:8px">已送出</div>
+        <div class="case-id-pill">案件編號：{{ responseCaseId }}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">提交內容</div>
+        <div class="summary-row"><span class="summary-label">Email</span><span>{{ form.email }}</span></div>
+        <div class="summary-row"><span class="summary-label">單位</span><span>{{ form.department }}</span></div>
+        <div class="summary-row"><span class="summary-label">類型</span><span>{{ form.requestType }}</span></div>
+        <div class="summary-row"><span class="summary-label">品牌 · 分類</span><span>{{ form.selectedBrand }} · {{ form.category }}</span></div>
+        <div v-if="form.extraName" class="summary-row">
+          <span class="summary-label">{{ studentEmail ? '學員' : '老師' }}</span>
+          <span>{{ form.extraName }}<span v-if="studentEmail" style="color:var(--text-muted);font-size:12px"> · {{ studentEmail }}</span></span>
+        </div>
+        <div v-if="form.subIssue" class="summary-row"><span class="summary-label">詳細問題</span><span>{{ form.subIssue }}</span></div>
+        <div v-if="form.crmLink" class="summary-row"><span class="summary-label">CRM 連結</span><span><a :href="form.crmLink" target="_blank" style="color:var(--accent)">{{ form.crmLink }}</a></span></div>
+        <div class="summary-row"><span class="summary-label">問題詳述</span><span style="white-space:pre-wrap">{{ form.description }}</span></div>
+        <div class="summary-row"><span class="summary-label">附件</span>
+          <span v-if="form.files.length === 0">無</span>
+          <span v-else><div v-for="f in form.files" :key="f.name">· {{ f.name }}</div></span>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-full" @click="resetForm">再次填寫</button>
+    </div>
+
+    <!-- 表單 -->
+    <div v-else>
+      <div class="page-header">
+        <div class="page-title">客訴與需求申請</div>
+        <div class="page-subtitle">資料同步至 Google Sheet · 檔案上傳 Google Drive · n8n 自動處理</div>
+      </div>
+
+      <div class="auth-pill">已登入：{{ session.email }}</div>
+
+      <div class="card">
+        <div class="card-title">基本資料</div>
+
+        <div class="field">
+          <label>Email<span class="req">*</span></label>
+          <input type="email" :value="form.email" readonly>
+        </div>
+
+        <div class="field">
+          <label>你的單位<span class="req">*</span></label>
+          <select v-model="form.department" required>
+            <option value="" disabled>請選擇</option>
+            <option v-for="d in departments" :key="d">{{ d }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>類型<span class="req">*</span></label>
+          <div class="radio-row">
+            <label class="radio-card" :class="{selected: form.requestType === '客訴'}">
+              <input type="radio" value="客訴" v-model="form.requestType"> 客訴
+            </label>
+            <label class="radio-card" :class="{selected: form.requestType === '需求'}">
+              <input type="radio" value="需求" v-model="form.requestType"> 需求
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">分類</div>
+
+        <div class="field">
+          <label>所屬品牌<span class="req">*</span></label>
+          <div v-if="brandsLoading" style="color:var(--text-muted);font-size:13px">載入中…</div>
+          <div v-else class="brand-grid">
+            <label v-for="b in brands" :key="b.key" class="radio-card" :class="{selected: form.selectedBrand === b.name}">
+              <input type="radio" :value="b.name" v-model="form.selectedBrand" @change="resetStudent"> {{ b.name }}
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>提出類型分類<span class="req">*</span></label>
+          <select v-model="form.category" @change="resetSubFields" required>
+            <option value="" disabled>請選擇分類</option>
+            <optgroup label="師資教學"><option>業師總監</option></optgroup>
+            <optgroup label="學生學習">
+              <option>新生導覽</option><option>學生專案</option><option>學生接案</option>
+            </optgroup>
+            <optgroup label="產品行政">
+              <option>學習助教</option><option>學習教練</option><option>業務資料</option>
+              <option>銷售方案</option><option>產品設計</option><option>系統問題</option>
+              <option>線上課程</option><option>實體課程</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div v-if="form.category === '業師總監'" class="field">
+          <label>老師姓名<span class="req">*</span></label>
+          <input type="text" v-model="form.extraName" placeholder="老師姓名" required>
+        </div>
+
+        <div v-if="['新生導覽','學生專案','學生接案'].includes(form.category)" class="field">
+          <label>學員 Email<span class="req">*</span></label>
+          <div class="search-row">
+            <input type="email" v-model="studentEmail" placeholder="student@example.com" @keydown.enter.prevent="searchStudent">
+            <button type="button" class="btn btn-dark" @click="searchStudent" :disabled="searching">{{ searching ? '搜尋中...' : '搜尋' }}</button>
+          </div>
+          <div v-if="searchError" class="search-error">{{ searchError }}</div>
+          <div v-if="form.extraName && studentEmail" class="member-result show">
+            <div class="member-avatar">{{ form.extraName.charAt(0) }}</div>
+            <div>
+              <div class="member-name">{{ form.extraName }}</div>
+              <div class="member-email">{{ studentEmail }}</div>
+            </div>
+          </div>
+          <div v-if="!form.selectedBrand" style="font-size:11px;color:var(--warn);margin-top:6px">請先選擇上方「所屬品牌」才能搜尋學員</div>
+        </div>
+
+        <div v-if="form.category === '線上課程'" class="field">
+          <label>詳細問題分類<span class="req">*</span></label>
+          <select v-model="form.subIssue" required>
+            <option value="" disabled>請選擇</option>
+            <option>教材問題</option><option>字幕問題</option>
+            <option>影片問題</option><option>系統問題</option>
+          </select>
+        </div>
+
+        <div v-if="form.category === '實體課程'" class="field">
+          <label>詳細問題分類<span class="req">*</span></label>
+          <select v-model="form.subIssue" required>
+            <option value="" disabled>請選擇</option>
+            <option>教材問題</option><option>影片問題</option>
+            <option>系統問題</option><option>課程問題</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">內容與附件</div>
+
+        <div class="field">
+          <label>CRM 連結（簡述 URL）</label>
+          <input type="url" v-model="form.crmLink" placeholder="https://...">
+        </div>
+
+        <div class="field">
+          <label>詳述你的問題<span class="req">*</span></label>
+          <textarea v-model="form.description" placeholder="請描述問題情境、發生時間、影響範圍" required></textarea>
+        </div>
+
+        <div class="field">
+          <label>上傳檔案（可多選）</label>
+          <input type="file" multiple @change="handleFileUpload" class="file-input">
+          <div v-if="form.files.length > 0" class="file-hint">已選擇 {{ form.files.length }} 個檔案 · 將上傳至 Drive</div>
+        </div>
+      </div>
+
+      <div v-if="submitError" class="alert alert-error show">{{ submitError }}</div>
+
+      <button class="btn btn-dark btn-full" @click="submitForm" :disabled="isSubmitting">
+        {{ isSubmitting ? '送出中...' : '送出申請' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>[v-cloak]{display:none}</style>
+
+<script>
+const { createApp } = Vue;
+const SESSION_KEY = 'feedbackSession';
+const SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
+const N8N_WEBHOOK = 'https://ooschoolall.zeabur.app/webhook/submit-form';
+
+createApp({
+  data() {
+    return {
+      // Auth state
+      session: null,
+      loginEmail: '',
+      loginError: '',
+      loggingIn: false,
+
+      // Brands (from /api/brands)
+      brands: [],
+      brandsLoading: true,
+
+      // Static
+      departments: ['業務部門','業務經辦','客服部門','總務部門','會計部門','產品維運','產品研發'],
+
+      // Member search state
+      studentEmail: '',
+      searching: false,
+      searchError: '',
+
+      // Form
+      form: {
+        email: '',
+        department: '',
+        requestType: '',
+        category: '',
+        selectedBrand: '',  // brand display name (送進 n8n 的值)
+        extraName: '',
+        subIssue: '',
+        crmLink: '',
+        description: '',
+        files: []
+      },
+
+      // Submission state
+      isSubmitting: false,
+      isSubmitted: false,
+      submitError: '',
+      responseCaseId: ''
+    };
+  },
+  computed: {
+    loggedIn() { return !!this.session; }
+  },
+  async mounted() {
+    // Restore session
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const obj = JSON.parse(raw);
+        if (Date.now() - obj.loginAt < SESSION_TTL) {
+          this.session = obj;
+          this.form.email = obj.email;
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+    } catch {}
+
+    // Load brands (works regardless of login state — but only used after login)
+    try {
+      const res  = await fetch('/api/brands');
+      const json = await res.json();
+      if (json.success) this.brands = json.data;
+    } catch {}
+    this.brandsLoading = false;
+  },
+  methods: {
+    async login() {
+      this.loginError = '';
+      const email = this.loginEmail.trim().toLowerCase();
+      if (!email) { this.loginError = '請輸入 email'; return; }
+      this.loggingIn = true;
+      try {
+        const res  = await fetch('/api/feedback/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const json = await res.json();
+        if (!json.success) { this.loginError = json.message || '登入失敗'; return; }
+        const session = { email: json.email, loginAt: Date.now() };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        this.session = session;
+        this.form.email = session.email;
+      } catch (e) {
+        this.loginError = '連線失敗，請稍後再試';
+      } finally {
+        this.loggingIn = false;
+      }
+    },
+
+    logout() {
+      localStorage.removeItem(SESSION_KEY);
+      this.session = null;
+      this.loginEmail = '';
+    },
+
+    resetSubFields() {
+      this.form.extraName = '';
+      this.form.subIssue = '';
+      this.studentEmail = '';
+      this.searchError = '';
+    },
+    resetStudent() {
+      // 換品牌時清掉舊的搜尋結果（避免不同品牌混搭）
+      this.form.extraName = '';
+      this.studentEmail = '';
+      this.searchError = '';
+    },
+
+    async searchStudent() {
+      this.searchError = '';
+      this.form.extraName = '';
+      const email = this.studentEmail.trim().toLowerCase();
+      if (!email) { this.searchError = '請輸入 email'; return; }
+      if (!this.form.selectedBrand) { this.searchError = '請先選擇上方「所屬品牌」'; return; }
+      // map brand name back to key (for /api/member/search)
+      const b = this.brands.find(b => b.name === this.form.selectedBrand);
+      if (!b) { this.searchError = '品牌資料異常，請重新整理'; return; }
+
+      this.searching = true;
+      try {
+        const res  = await fetch('/api/member/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, brandKey: b.key })
+        });
+        const json = await res.json();
+        if (!json.success) {
+          this.searchError = `在 ${b.name} 找不到此學員，請確認品牌或 email`;
+          return;
+        }
+        this.form.extraName = json.data?.name || '(無姓名)';
+      } catch (e) {
+        this.searchError = '搜尋失敗，請稍後再試';
+      } finally {
+        this.searching = false;
+      }
+    },
+
+    handleFileUpload(e) {
+      this.form.files = Array.from(e.target.files);
+    },
+
+    resetForm() {
+      Object.assign(this.form, {
+        department: '', requestType: '', category: '', selectedBrand: '',
+        extraName: '', subIssue: '', crmLink: '', description: '', files: []
+      });
+      // 保留 email（自動帶入登入者）
+      this.form.email = this.session.email;
+      this.studentEmail = '';
+      this.searchError = '';
+      this.submitError = '';
+      this.isSubmitted = false;
+      this.responseCaseId = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    async submitForm() {
+      this.submitError = '';
+      // basic validation
+      if (!this.form.department || !this.form.requestType || !this.form.category || !this.form.selectedBrand || !this.form.description) {
+        this.submitError = '請填寫所有必填欄位'; return;
+      }
+      if (this.form.category === '業師總監' && !this.form.extraName) {
+        this.submitError = '請填寫老師姓名'; return;
+      }
+      if (['新生導覽','學生專案','學生接案'].includes(this.form.category) && !this.form.extraName) {
+        this.submitError = '請先搜尋並選定學員'; return;
+      }
+      if (['線上課程','實體課程'].includes(this.form.category) && !this.form.subIssue) {
+        this.submitError = '請選擇詳細問題分類'; return;
+      }
+
+      this.isSubmitting = true;
+
+      // Re-verify allowlist before sending (防 session 被偽造)
+      try {
+        const v = await fetch('/api/feedback/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: this.session.email })
+        });
+        const vj = await v.json();
+        if (!vj.success) {
+          this.submitError = '帳號權限已變更，請重新登入';
+          this.logout();
+          return;
+        }
+      } catch {
+        this.submitError = '驗證失敗，請稍後再試';
+        return;
+      } finally {
+        this.isSubmitting = false;
+      }
+
+      // Build n8n payload (same FormData shape as 原表單)
+      this.isSubmitting = true;
+      const fd = new FormData();
+      fd.append('email',          this.form.email);
+      fd.append('department',     this.form.department);
+      fd.append('requestType',    this.form.requestType);
+      fd.append('category',       this.form.category);
+      fd.append('selectedBrand',  this.form.selectedBrand);
+      fd.append('extraName',      this.form.extraName);
+      fd.append('subIssue',       this.form.subIssue);
+      fd.append('crmLink',        this.form.crmLink);
+      fd.append('description',    this.form.description);
+      this.form.files.forEach(f => fd.append('files', f));
+
+      try {
+        const res = await fetch(N8N_WEBHOOK, { method: 'POST', body: fd });
+        if (!res.ok) {
+          this.submitError = '送出失敗，請稍後再試（status: ' + res.status + '）';
+          return;
+        }
+        const data = await res.json();
+        // n8n 回傳格式可能是 { caseId } 或 [{ caseId }]
+        if (data?.caseId) this.responseCaseId = data.caseId;
+        else if (Array.isArray(data) && data[0]?.caseId) this.responseCaseId = data[0].caseId;
+        else this.responseCaseId = '已生成（請查看郵件）';
+
+        this.isSubmitted = true;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) {
+        this.submitError = '網路連線失敗，請稍後再試';
+      } finally {
+        this.isSubmitting = false;
+      }
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
