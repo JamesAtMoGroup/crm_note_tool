@@ -16,7 +16,7 @@
   <a href="/admin/categories/edit">分類編輯</a>
   <a href="/admin/analytics">統計</a>
   <a href="/admin/feedback">客訴/需求</a>
-  <div class="nav-right"><button class="nav-logout" onclick="opsLogout()">登出</button></div>
+  <div class="nav-right"><button class="nav-logout" onclick="location.href='/'">返回</button></div>
 </nav>
 
 <div class="main-narrow">
@@ -150,7 +150,7 @@
       categories = r.data || [];
       const sel = document.getElementById('categorySelect');
       sel.innerHTML = '<option value="">請選擇分類</option>' +
-        categories.map(c => `<option value="${c.id}">${c.itemName}（${c.deductType}${c.deductType==='固定'?' '+c.deductValue+'%':''}）</option>`).join('') +
+        categories.map(c => `<option value="${c.id}">${c.itemName}（${c.deductType==='固定' ? '- '+c.deductValue+'%' : c.deductType}）</option>`).join('') +
         '<option value="CUSTOM">非既有需求（自填）</option>';
       selectedCategory = null;
       document.getElementById('deductBadge').innerHTML = '';

@@ -149,7 +149,7 @@
 <!-- Tabs -->
 <div class="tabs" id="tabsBar">
   <button class="tab-btn active" id="tab-apply" onclick="switchTab('apply')">特殊申請</button>
-  <button class="tab-btn" id="tab-note" onclick="switchTab('note')">客服溝通紀錄</button>
+  <button class="tab-btn" id="tab-note" onclick="switchTab('note')">新生公版</button>
   <div class="tab-indicator" id="tabIndicator"></div>
 </div>
 
@@ -224,7 +224,7 @@
   </div>
 
   <!-- ══════════════════════════════════════
-       Tab: 客服溝通紀錄
+       Tab: 新生公版
   ══════════════════════════════════════ -->
   <div id="tabNote" style="display:none">
 
@@ -452,7 +452,7 @@ async function loadApplyCategories() {
     a_categories = json.data || [];
     const sel = document.getElementById('a_categorySelect');
     sel.innerHTML = '<option value="">請選擇分類</option>' +
-      a_categories.map(c => `<option value="${c.id}">${c.itemName}（${c.deductType}${c.deductType==='固定'?' '+c.deductValue+'%':''}）</option>`).join('') +
+      a_categories.map(c => `<option value="${c.id}">${c.itemName}（${c.deductType==='固定' ? '- '+c.deductValue+'%' : c.deductType}）</option>`).join('') +
       '<option value="CUSTOM">非既有需求（自填）</option>';
   } catch { /* silent */ }
 }
@@ -593,7 +593,7 @@ function applyReset() {
   a_memberId = null; a_memberName = null; a_memberEmail = null; a_selectedCategory = null;
 }
 
-// ─── 客服溝通紀錄 Tab ────────────────────────────────────────────────
+// ─── 新生公版 Tab ────────────────────────────────────────────────
 let n_memberId = null, n_memberName = null;
 
 function noteRenderForm(brandKey) {
