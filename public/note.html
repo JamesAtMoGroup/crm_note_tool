@@ -148,8 +148,8 @@
 
 <!-- Tabs -->
 <div class="tabs" id="tabsBar">
-  <button class="tab-btn active" id="tab-apply" onclick="switchTab('apply')">特殊申請</button>
-  <button class="tab-btn" id="tab-note" onclick="switchTab('note')">新生公版</button>
+  <button class="tab-btn active" id="tab-note" onclick="switchTab('note')">新生公版</button>
+  <button class="tab-btn" id="tab-apply" onclick="switchTab('apply')">特殊申請</button>
   <div class="tab-indicator" id="tabIndicator"></div>
 </div>
 
@@ -158,7 +158,7 @@
   <!-- ══════════════════════════════════════
        Tab: 特殊申請
   ══════════════════════════════════════ -->
-  <div id="tabApply">
+  <div id="tabApply" style="display:none">
 
     <!-- 搜尋學員 -->
     <div class="card">
@@ -226,7 +226,7 @@
   <!-- ══════════════════════════════════════
        Tab: 新生公版
   ══════════════════════════════════════ -->
-  <div id="tabNote" style="display:none">
+  <div id="tabNote">
 
     <div class="card">
       <div class="card-title">01 · 搜尋學員</div>
