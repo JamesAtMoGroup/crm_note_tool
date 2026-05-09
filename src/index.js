@@ -39,4 +39,13 @@ app.get('/admin/analytics',          pub('admin/analytics.html'));
 app.get('/admin/feedback',           pub('admin/feedback.html'));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server on http://localhost:${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`✅ Server on http://localhost:${PORT}`);
+  try {
+    const fetch = require('node-fetch');
+    const ip = (await (await fetch('https://api.ipify.org')).text()).trim();
+    console.log(`[OUTBOUND IP] ${ip}`);
+  } catch (e) {
+    console.log(`[OUTBOUND IP] lookup failed: ${e.message}`);
+  }
+});
