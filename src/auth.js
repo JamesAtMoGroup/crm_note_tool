@@ -47,7 +47,20 @@ async function getAuthToken(brandKey, forceRefresh = false) {
     }),
   });
 
-  const data = await response.json();
+  const responseText = await response.text();
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (e) {
+    console.error('[KOLABLE AUTH] non-JSON response', {
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      via: response.headers.get('via'),
+      server: response.headers.get('server'),
+      bodyPreview: responseText.slice(0, 800),
+    });
+    throw new Error(`Kolable auth 回了非 JSON (status ${response.status}): ${responseText.slice(0, 300)}`);
+  }
 
   if (!data?.result?.authToken) {
     throw new Error(`Token 取得失敗：${JSON.stringify(data)}`);
