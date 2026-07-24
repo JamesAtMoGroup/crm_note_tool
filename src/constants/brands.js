@@ -5,6 +5,7 @@ const BRAND_DISPLAY_NAMES = {
   nschool:    'nschool財經',
   xlab:       'xlab',
   aischool:   'AI未來學院',
+  novastar:   '超星',
 };
 
 // 特殊申請可用的品牌（排除 aischool）
