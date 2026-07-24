@@ -612,12 +612,13 @@ function noteRenderForm(brandKey) {
     return `<div class="field"><label>${label}${r}</label>${input}</div>`;
   };
   const sec = t => `<div class="section-label">${t}</div>`;
-  if (brandKey === 'xlab') {
+  if (brandKey === 'xlab' || brandKey === 'novastar') {
+    // novastar（超星）＝ xlab 同款公版，但不要「實體/線上」欄位
     el.innerHTML = sec('📌 學員基本資料') +
       req('學員姓名','f_memberName','text',{required:true,readonly:true}) +
       req('學員背景科系&職業','f_background','textarea',{required:true,placeholder:'例：資管系 / 業務'}) +
       req('訓練營梯次','f_campSession','text',{required:true,placeholder:'日期_主題，尚未開課填「尚未」'}) +
-      req('實體/線上','f_mode','select',{required:true,options:['實體','線上','實體+線上']}) +
+      (brandKey === 'xlab' ? req('實體/線上','f_mode','select',{required:true,options:['實體','線上','實體+線上']}) : '') +
       req('教材名稱','f_material','select',{required:true,options:XLAB_MATERIALS}) +
       sec('📞 Demo 過程紀錄') +
       req('Demo 中聊到的內容','f_demoContent','textarea',{placeholder:'若有插班，請註明插班'});
@@ -667,14 +668,14 @@ async function noteSearchMember() {
 
 function n_getFormData() {
   const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : undefined; };
-  if (currentBrand === 'xlab') return { memberName: n_memberName, background: g('f_background'), campSession: g('f_campSession'), mode: g('f_mode'), material: g('f_material'), demoContent: g('f_demoContent') };
+  if (currentBrand === 'xlab' || currentBrand === 'novastar') { const d = { memberName: n_memberName, background: g('f_background'), campSession: g('f_campSession'), material: g('f_material'), demoContent: g('f_demoContent') }; if (currentBrand === 'xlab') d.mode = g('f_mode'); return d; }
   const d = { memberName: n_memberName, background: g('f_background'), purchaseDomain: g('f_purchaseDomain'), expectation: g('f_expectation'), personality: g('f_personality'), story: g('f_story'), demoContent: g('f_demoContent'), salesScript: g('f_salesScript') };
   if (currentBrand !== 'nschool') d.portfolio = g('f_portfolio');
   return d;
 }
 
 function n_getRequired() {
-  if (currentBrand === 'xlab') return [['f_background','學員背景科系&職業'],['f_campSession','訓練營梯次'],['f_mode','實體/線上'],['f_material','教材名稱']];
+  if (currentBrand === 'xlab' || currentBrand === 'novastar') { const r = [['f_background','學員背景科系&職業'],['f_campSession','訓練營梯次']]; if (currentBrand === 'xlab') r.push(['f_mode','實體/線上']); r.push(['f_material','教材名稱']); return r; }
   return [['f_background','學員背景科系&職業'],['f_purchaseDomain','購買領域'],['f_expectation','加入學院的期待'],['f_personality','學員特質/個性'],['f_story','學員故事背景'],['f_salesScript','話術內容']];
 }
 
@@ -708,8 +709,8 @@ function n_showSuccessModal(fd, staffName) {
   const email = document.getElementById('n_memberEmail').textContent;
   document.getElementById('n_modalSubtitle').textContent = `${BRAND_DISPLAY[currentBrand]} · ${email}`;
   let html = '';
-  if (currentBrand === 'xlab') {
-    html += `<div class="modal-section-label">📌 學員基本資料</div>` + n_row('學員姓名', fd.memberName) + n_row('學員背景', fd.background) + n_row('訓練營梯次', fd.campSession) + n_row('實體/線上', fd.mode) + n_row('教材名稱', fd.material) + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程紀錄</div>` + n_row('Demo 內容', fd.demoContent || '（未填）');
+  if (currentBrand === 'xlab' || currentBrand === 'novastar') {
+    html += `<div class="modal-section-label">📌 學員基本資料</div>` + n_row('學員姓名', fd.memberName) + n_row('學員背景', fd.background) + n_row('訓練營梯次', fd.campSession) + (currentBrand === 'xlab' ? n_row('實體/線上', fd.mode) : '') + n_row('教材名稱', fd.material) + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程紀錄</div>` + n_row('Demo 內容', fd.demoContent || '（未填）');
   } else {
     html += `<div class="modal-section-label">📌 學員基本資料</div>` + n_row('學員姓名', fd.memberName) + n_row('學員背景', fd.background) + n_row('購買領域', fd.purchaseDomain) + `<div class="modal-divider"></div><div class="modal-section-label">🎯 學習目標</div>` + n_row('期待', fd.expectation) + n_row('特質/個性', fd.personality) + n_row('故事背景', fd.story) + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程</div>` + n_row('Demo 內容', fd.demoContent || '（未填）');
     if (currentBrand !== 'nschool') html += n_row('作品集', fd.portfolio || '（未填）');

@@ -58,7 +58,9 @@ router.post('/', async (req, res) => {
 function formatNote(formData, staffName, brandKey) {
   const v = val => val || '';
 
-  if (brandKey === 'xlab') {
+  if (brandKey === 'xlab' || brandKey === 'novastar') {
+    // novastar（超星）＝ xlab 同款，但不含「實體/線上」
+    const modeLine = brandKey === 'xlab' ? `*實體/線上：${v(formData.mode)}\n\n` : '';
     return `📌 學員基本資料
 
 *學員姓名：${v(formData.memberName)}
@@ -67,9 +69,7 @@ function formatNote(formData, staffName, brandKey) {
 
 *訓練營梯次：${v(formData.campSession)}
 
-*實體/線上：${v(formData.mode)}
-
-*教材名稱：${v(formData.material)}
+${modeLine}*教材名稱：${v(formData.material)}
 
 📞 Demo 過程紀錄
 
