@@ -58,9 +58,29 @@ router.post('/', async (req, res) => {
 function formatNote(formData, staffName, brandKey) {
   const v = val => val || '';
 
-  if (brandKey === 'xlab' || brandKey === 'novastar') {
-    // novastar（超星）＝ xlab 同款，但不含「實體/線上」
-    const modeLine = brandKey === 'xlab' ? `*實體/線上：${v(formData.mode)}\n\n` : '';
+  if (brandKey === 'novastar') {
+    // 超星（NOVA）：專案班領域 + 專案班梯次（年/月）
+    const cohort = (formData.cohortYear || formData.cohortMonth)
+      ? `${v(formData.cohortYear)} 年 ${v(formData.cohortMonth)} 月` : '';
+    return `📌 學員基本資料
+
+*學員姓名：${v(formData.memberName)}
+
+*學員背景科系&職業：${v(formData.background)}
+
+*專案班領域：${v(formData.projectDomain)}
+
+*專案班梯次：${cohort}
+
+📞 Demo 過程紀錄
+
+Demo 中聊到的內容：
+${v(formData.demoContent)}
+
+記錄人員：${staffName || '-'}`;
+  }
+
+  if (brandKey === 'xlab') {
     return `📌 學員基本資料
 
 *學員姓名：${v(formData.memberName)}
@@ -69,7 +89,9 @@ function formatNote(formData, staffName, brandKey) {
 
 *訓練營梯次：${v(formData.campSession)}
 
-${modeLine}*教材名稱：${v(formData.material)}
+*實體/線上：${v(formData.mode)}
+
+*教材名稱：${v(formData.material)}
 
 📞 Demo 過程紀錄
 
