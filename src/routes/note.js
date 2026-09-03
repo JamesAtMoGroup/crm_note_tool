@@ -62,6 +62,9 @@ function formatNote(formData, staffName, brandKey) {
     // 超星（NOVA）：專案班領域 + 專案班梯次（年/月）
     const cohort = (formData.cohortYear || formData.cohortMonth)
       ? `${v(formData.cohortYear)} 年 ${v(formData.cohortMonth)} 月` : '';
+    const preCourseLine = formData.preCourse === '是'
+      ? `*是否有報名前導課：是（場次：${v(formData.preCourseSession)}）`
+      : `*是否有報名前導課：${v(formData.preCourse)}`;
     return `📌 學員基本資料
 
 *學員姓名：${v(formData.memberName)}
@@ -71,6 +74,8 @@ function formatNote(formData, staffName, brandKey) {
 *專案班領域：${v(formData.projectDomain)}
 
 *專案班梯次：${cohort}
+
+${preCourseLine}
 
 📞 Demo 過程紀錄
 
