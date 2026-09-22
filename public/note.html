@@ -639,7 +639,7 @@ function noteRenderForm(brandKey) {
       req('學員背景科系&職業','f_background','textarea',{required:true,placeholder:'例：資管系 / 業務'}) +
       req('專案班領域','f_projectDomain','select',{required:true,options:['產品設計','自媒體','行銷','工程設計',ONE_ON_ONE],onchange:'n_toggleProjectDomain()'}) +
       req('可以上課的時間點','f_availableTime','text',{required:true,placeholder:'2026 年 09 月 08 號（週二）開始，固定週二晚上 19:30 - 21:30，連續 12 週',wrapId:'f_availableTimeWrap',hidden:true}) +
-      req('選擇 1v1 專案班的特殊原因（必填）','f_1v1Reason','textarea',{wrapId:'f_1v1ReasonWrap',hidden:true}) +
+      req('選擇 1v1 專案班的特殊原因（必填）','f_1v1Reason','textarea',{required:true,wrapId:'f_1v1ReasonWrap',hidden:true}) +
       req('其他特別注意事項同步（選填）','f_1v1Note','textarea',{wrapId:'f_1v1NoteWrap',hidden:true}) +
       cohortField() +
       preCourseField() +
