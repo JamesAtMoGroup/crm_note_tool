@@ -59,9 +59,17 @@ function formatNote(formData, staffName, brandKey) {
   const v = val => val || '';
 
   if (brandKey === 'novastar') {
-    // 超星（NOVA）：專案班領域 + 專案班梯次（年/月）
+    // 超星（NOVA）：專案班領域 + 專案班梯次（年/月，非 1v1）或 可上課時間/特殊原因/注意事項（1v1）
+    const is1v1 = formData.projectDomain === '1v1 專案班';
     const cohort = (formData.cohortYear || formData.cohortMonth)
       ? `${v(formData.cohortYear)} 年 ${v(formData.cohortMonth)} 月` : '';
+    const domainLines = is1v1
+      ? `*可以上課的時間點：${v(formData.availableTime)}
+
+*選擇 1v1 專案班的特殊原因：${v(formData.oneOnOneReason)}
+
+其他特別注意事項同步：${v(formData.oneOnOneNote)}`
+      : `*專案班梯次：${cohort}`;
     const preCourseLine = formData.preCourse === '是'
       ? `*是否有報名前導課：是（場次：${v(formData.preCourseSession)}）`
       : `*是否有報名前導課：${v(formData.preCourse)}`;
@@ -73,7 +81,7 @@ function formatNote(formData, staffName, brandKey) {
 
 *專案班領域：${v(formData.projectDomain)}
 
-*專案班梯次：${cohort}
+${domainLines}
 
 ${preCourseLine}
 
