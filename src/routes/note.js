@@ -64,7 +64,9 @@ function formatNote(formData, staffName, brandKey) {
     const cohort = (formData.cohortYear || formData.cohortMonth)
       ? `${v(formData.cohortYear)} 年 ${v(formData.cohortMonth)} 月` : '';
     const domainLines = is1v1
-      ? `*可以上課的時間點：${v(formData.availableTime)}
+      ? `*報名領域：${v(formData.oneOnOneDomain)}
+
+*可以上課的時間點：${v(formData.availableTime)}
 
 *選擇 1v1 專案班的特殊原因：${v(formData.oneOnOneReason)}
 

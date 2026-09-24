@@ -617,8 +617,9 @@ function noteRenderForm(brandKey) {
   const sec = t => `<div class="section-label">${t}</div>`;
   if (brandKey === 'novastar') {
     // 超星（NOVA）新生公版：專案班領域（下拉，含 1v1 專案班）+ 專案班梯次（年/月，非 1v1 時填）
-    // 選 1v1 專案班時改填：可以上課的時間點 → 特殊原因（必填）→ 其他特別注意事項（選填），不填專案班梯次
+    // 選 1v1 專案班時改填：報名領域 → 可以上課的時間點 → 特殊原因（必填）→ 其他特別注意事項（選填），不填專案班梯次
     const ONE_ON_ONE = '1v1 專案班';
+    const ONE_ON_ONE_DOMAINS = ['產品設計','自媒體','行銷','工程設計'];
     const cohortField = () => {
       const yrs = ['2026','2027','2028'].map(y => `<option value="${y}">${y} 年</option>`).join('');
       const mos = Array.from({length:12}, (_, i) => `<option value="${i+1}">${i+1} 月</option>`).join('');
@@ -638,6 +639,7 @@ function noteRenderForm(brandKey) {
       req('學員姓名','f_memberName','text',{required:true,readonly:true}) +
       req('學員背景科系&職業','f_background','textarea',{required:true,placeholder:'例：資管系 / 業務'}) +
       req('專案班領域','f_projectDomain','select',{required:true,options:['產品設計','自媒體','行銷','工程設計',ONE_ON_ONE],onchange:'n_toggleProjectDomain()'}) +
+      req('報名領域','f_1v1Domain','select',{required:true,options:ONE_ON_ONE_DOMAINS,wrapId:'f_1v1DomainWrap',hidden:true}) +
       req('可以上課的時間點','f_availableTime','text',{required:true,placeholder:'2026 年 09 月 08 號（週二）開始，固定週二晚上 19:30 - 21:30，連續 12 週',wrapId:'f_availableTimeWrap',hidden:true}) +
       req('選擇 1v1 專案班的特殊原因（必填）','f_1v1Reason','textarea',{required:true,wrapId:'f_1v1ReasonWrap',hidden:true}) +
       req('其他特別注意事項同步（選填）','f_1v1Note','textarea',{wrapId:'f_1v1NoteWrap',hidden:true}) +
@@ -711,10 +713,12 @@ function n_toggleProjectDomain() {
   const sel = document.getElementById('f_projectDomain');
   if (!sel) return;
   const is1v1 = sel.value === '1v1 專案班';
+  const domainWrap = document.getElementById('f_1v1DomainWrap');
   const timeWrap   = document.getElementById('f_availableTimeWrap');
   const reasonWrap = document.getElementById('f_1v1ReasonWrap');
   const noteWrap   = document.getElementById('f_1v1NoteWrap');
   const cohortWrap = document.getElementById('f_cohortWrap');
+  if (domainWrap) domainWrap.style.display = is1v1 ? '' : 'none';
   if (timeWrap)   timeWrap.style.display   = is1v1 ? '' : 'none';
   if (reasonWrap) reasonWrap.style.display = is1v1 ? '' : 'none';
   if (noteWrap)   noteWrap.style.display   = is1v1 ? '' : 'none';
@@ -723,6 +727,7 @@ function n_toggleProjectDomain() {
     const y = document.getElementById('f_cohortYear'); if (y) y.value = '';
     const m = document.getElementById('f_cohortMonth'); if (m) m.value = '';
   } else {
+    const d = document.getElementById('f_1v1Domain'); if (d) d.value = '';
     const t = document.getElementById('f_availableTime'); if (t) t.value = '';
     const r = document.getElementById('f_1v1Reason'); if (r) r.value = '';
     const n = document.getElementById('f_1v1Note'); if (n) n.value = '';
@@ -731,7 +736,7 @@ function n_toggleProjectDomain() {
 
 function n_getFormData() {
   const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : undefined; };
-  if (currentBrand === 'novastar') { return { memberName: n_memberName, background: g('f_background'), projectDomain: g('f_projectDomain'), availableTime: g('f_availableTime'), oneOnOneReason: g('f_1v1Reason'), oneOnOneNote: g('f_1v1Note'), cohortYear: g('f_cohortYear'), cohortMonth: g('f_cohortMonth'), preCourse: g('f_preCourse'), preCourseSession: g('f_preCourseSession'), demoContent: g('f_demoContent') }; }
+  if (currentBrand === 'novastar') { return { memberName: n_memberName, background: g('f_background'), projectDomain: g('f_projectDomain'), oneOnOneDomain: g('f_1v1Domain'), availableTime: g('f_availableTime'), oneOnOneReason: g('f_1v1Reason'), oneOnOneNote: g('f_1v1Note'), cohortYear: g('f_cohortYear'), cohortMonth: g('f_cohortMonth'), preCourse: g('f_preCourse'), preCourseSession: g('f_preCourseSession'), demoContent: g('f_demoContent') }; }
   if (currentBrand === 'xlab') { return { memberName: n_memberName, background: g('f_background'), campSession: g('f_campSession'), mode: g('f_mode'), material: g('f_material'), demoContent: g('f_demoContent') }; }
   const d = { memberName: n_memberName, background: g('f_background'), purchaseDomain: g('f_purchaseDomain'), expectation: g('f_expectation'), personality: g('f_personality'), story: g('f_story'), demoContent: g('f_demoContent'), salesScript: g('f_salesScript') };
   if (currentBrand !== 'nschool') d.portfolio = g('f_portfolio');
@@ -744,7 +749,7 @@ function n_getRequired() {
     const is1v1 = domain && domain.value === '1v1 專案班';
     const r = [['f_background','學員背景科系&職業'],['f_projectDomain','專案班領域']];
     if (is1v1) {
-      r.push(['f_availableTime','可以上課的時間點'], ['f_1v1Reason','選擇 1v1 專案班的特殊原因']);
+      r.push(['f_1v1Domain','報名領域'], ['f_availableTime','可以上課的時間點'], ['f_1v1Reason','選擇 1v1 專案班的特殊原因']);
     } else {
       r.push(['f_cohortYear','專案班梯次（年）'], ['f_cohortMonth','專案班梯次（月）']);
     }
@@ -792,7 +797,7 @@ function n_showSuccessModal(fd, staffName) {
     const cohort = (fd.cohortYear || fd.cohortMonth) ? `${fd.cohortYear || '?'} 年 ${fd.cohortMonth || '?'} 月` : '';
     html += `<div class="modal-section-label">📌 學員基本資料</div>` + n_row('學員姓名', fd.memberName) + n_row('學員背景', fd.background) + n_row('專案班領域', fd.projectDomain)
       + (is1v1
-          ? n_row('可以上課的時間點', fd.availableTime) + n_row('選擇 1v1 專案班的特殊原因', fd.oneOnOneReason) + n_row('其他特別注意事項同步', fd.oneOnOneNote || '（未填）')
+          ? n_row('報名領域', fd.oneOnOneDomain) + n_row('可以上課的時間點', fd.availableTime) + n_row('選擇 1v1 專案班的特殊原因', fd.oneOnOneReason) + n_row('其他特別注意事項同步', fd.oneOnOneNote || '（未填）')
           : n_row('專案班梯次', cohort))
       + n_row('是否有報名前導課', fd.preCourse) + (fd.preCourse === '是' ? n_row('前導課場次名稱', fd.preCourseSession) : '') + `<div class="modal-divider"></div><div class="modal-section-label">📞 Demo 過程紀錄</div>` + n_row('Demo 內容', fd.demoContent || '（未填）');
   } else if (currentBrand === 'xlab') {
